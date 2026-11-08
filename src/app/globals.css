@@ -4,6 +4,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@theme {
+    --breakpoint-wide: 56.25rem;
+}
+
 @theme inline {
     --font-heading: var(--font-geist-sans);
     --font-sans: var(--font-geist-sans);

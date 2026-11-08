@@ -5,7 +5,7 @@ import { cn } from "cn"
 
 const links = [
   { label: "Home", href: "#", active: true },
-  { label: "Explore Studios", href: "#explore" },
+  { label: "Explore Studios", href: "explore" },
   { label: "How It Works", href: "#how-it-works" },
   { label: "About Us", href: "#about" },
 ]

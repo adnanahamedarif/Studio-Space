@@ -9,7 +9,7 @@ const features = [
 
 export function Banner() {
   return (
-    <section className="flex-1">
+    <section>
       <div className="mx-auto grid w-full max-w-[1380px] items-start gap-10 px-6 pt-8 pb-16 sm:px-8 min-[900px]:grid-cols-2 min-[900px]:gap-10 min-[900px]:pb-20 min-[900px]:pt-8 lg:gap-12 xl:gap-12">
         <div className="max-w-[650px]">
           <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-4 py-1.5 text-[13px] font-semibold text-brand">
@@ -68,7 +68,7 @@ export function Banner() {
         </div>
 
         <div className="relative min-[900px]:mt-3">
-          
+     
           <div className="relative aspect-[3/2] overflow-hidden rounded-[22px] bg-slate-200 shadow-[0_30px_60px_-35px_rgba(17,18,43,0.45)]">
             <Image
               src="/images/banner.jpg"
@@ -80,7 +80,6 @@ export function Banner() {
               className="object-cover"
             />
 
-           
           
           </div>
         </div>
