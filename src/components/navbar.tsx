@@ -4,10 +4,10 @@ import { UserRound } from "lucide-react"
 import { cn } from "cn"
 
 const links = [
-  { label: "Home", href: "#", active: true },
-  { label: "Explore Studios", href: "explore" },
-  { label: "How It Works", href: "#how-it-works" },
-  { label: "About Us", href: "#about" },
+  { label: "Home", href: "/", active: true },
+  { label: "Explore Studios", href: "/studios" },
+  { label: "How It Works", href: "/#how-it-works" },
+  { label: "About Us", href: "/#about" },
 ]
 
 export function Navbar() {
@@ -45,25 +45,25 @@ export function Navbar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-3 sm:gap-5 min-[900px]:ml-0 min-[900px]:justify-self-end">
-          <a
-            href="#login"
+          <Link
+            href="/login"
             className="hidden text-[15px] font-medium text-ink transition-colors hover:text-brand sm:inline"
           >
             Login
-          </a>
-          <a
-            href="#register"
+          </Link>
+          <Link
+            href="/register"
             className="inline-flex h-10 items-center justify-center rounded-full bg-brand px-5 text-sm font-semibold text-white shadow-[0_10px_22px_-12px_rgba(98,56,245,0.9)] transition-colors hover:bg-brand-strong sm:h-11 sm:px-7"
           >
             Register
-          </a>
-          <button
-            type="button"
+          </Link>
+          <Link
+            href="/login"
             aria-label="Open account menu"
             className="hidden size-10 place-items-center rounded-full bg-brand text-white transition-colors hover:bg-brand-strong sm:grid"
           >
             <UserRound className="size-[18px]" strokeWidth={2.2} />
-          </button>
+          </Link>
         </div>
       </div>
     </header>

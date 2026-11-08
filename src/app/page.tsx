@@ -1,6 +1,6 @@
 import { Banner } from "@/components/banner"
 import { BrowseCategories } from "@/components/browse-categories"
-import { SiteFooter } from "@/components/footer"
+import { Footer } from "@/components/footer"
 import { HostCta } from "@/components/host-cta"
 import { HowBookingWorks } from "@/components/how-booking-works"
 import { Navbar } from "@/components/navbar"
@@ -8,12 +8,14 @@ import { WhyTrustUs } from "@/components/why-trust-us"
 
 export default function Home() {
   return (
-    <main className="flex flex-1 flex-col bg-surface">
-      <Banner />
-      <BrowseCategories />
-      <HowBookingWorks />
-      <WhyTrustUs />
-      <HostCta />
-    </main>
+    <>
+      <main className="flex flex-1 flex-col bg-surface">
+        <Banner />
+        <BrowseCategories />
+        <HowBookingWorks />
+        <WhyTrustUs />
+        <HostCta />
+      </main>
+    </>
   )
 }

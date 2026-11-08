@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # StudioSpace
 
-Single-route Next.js 16 App Router app (route in `src/app/page.tsx`) with a shadcn `base-nova` UI kit. No test runner or CI is configured yet.
+Multi-route Next.js 16 App Router app: the marketing homepage in `src/app/page.tsx`, the host portal at `/add-studio`, and standalone auth pages at `/login` and `/register`. Uses a shadcn `base-nova` UI kit. No test runner or CI is configured yet.
 
 ## Commands
 
@@ -24,6 +24,7 @@ Single-route Next.js 16 App Router app (route in `src/app/page.tsx`) with a shad
 
 - Components are shadcn v4 `base-nova` (`components.json`) built on **Base UI** (`@base-ui/react`), not Radix.
 - Use Base UI's `render={<Button … />}` prop instead of `asChild`; style open/closed state with `data-open` / `data-closed`, not `data-[state=open]`. See `src/components/ui/dialog.tsx`.
+- When a Base UI `Button` renders a non-button element, pass `nativeButton={false}` (for example `render={<a href="…" />} nativeButton={false}`) to preserve native semantics and avoid dev-overlay warnings.
 - Import `cn` from the `cn` package (`import { cn } from "cn"`), matching every generated component. It replaces `clsx` + `tailwind-merge`; don't add those.
 - `src/lib/utils.ts` only re-exports `cn` for the shadcn alias. Put real helpers elsewhere.
 - Add primitives with `npx shadcn add <name>`; keep generated files in `src/components/ui` and preserve their `data-slot` / variant patterns.
@@ -45,3 +46,12 @@ Single-route Next.js 16 App Router app (route in `src/app/page.tsx`) with a shad
 
 - `@/*` maps to `src/*`.
 - Routes: `src/app`; shared UI: `src/components/ui`; hooks: `src/hooks`; utilities: `src/lib`.
+
+## Current implementation
+
+- The root layout only provides the shared HTML/body/fonts shell. The homepage and `/add-studio` compose `Navbar` + `Footer` themselves; `/login` and `/register` use the standalone `AuthShell`.
+- The homepage composes `Banner`, `BrowseCategories`, `HowBookingWorks`, `WhyTrustUs`, and `HostCta`.
+- `/add-studio` is a static host-portal form built with shadcn `Card`, `Input`, `Label`, `Select`, `Checkbox`, `Textarea`, `Button`, `Badge`, and `Breadcrumb`. Form, upload, newsletter, and navigation actions are visual-only.
+- `/login` and `/register` use shared auth components in `src/components/auth/` (`AuthShell`, `AuthCard`, `AuthLogo`, `AuthDivider`, `GoogleIcon`, and a client-side `PasswordInput`). Authentication is visual-only.
+- Brand tokens (`brand`, `brand-strong`, `brand-soft`, `ink`, `surface`) live in `src/app/globals.css`. The custom `wide` breakpoint is 900px.
+- `CHANGELOG.md` records the implementation details, verification results, and known cleanup notes.

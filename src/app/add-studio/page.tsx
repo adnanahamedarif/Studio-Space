@@ -1,31 +1,23 @@
-import type { Metadata } from "next"
-import type { ReactNode } from "react"
-import Image from "next/image"
-import Link from "next/link"
+
+"use client"
+
+import { useState, type FormEvent, type ReactNode } from "react"
+import type { LucideIcon } from "lucide-react"
+import toast from "react-hot-toast"
+
 import {
-  ArrowLeft,
   Banknote,
   CheckCircle2,
   ClipboardList,
-  Eye,
   FileText,
   ImagePlus,
   MapPin,
-  MoreHorizontal,
   SlidersHorizontal,
-  UploadCloud,
-  type LucideIcon,
 } from "lucide-react"
 
+import { ImageUrlUpload } from "@/components/image-upload"
+
 import { Badge } from "@/components/ui/badge"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -46,23 +38,52 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 
-export const metadata: Metadata = {
-  title: "List Your Studio — StudioSpace",
-  description:
-    "Publish your creative space to thousands of verified photographers, podcasters, and filmmakers.",
-}
-
+// Amenities
 const amenities = [
-  { id: "lighting-kit", label: "Lighting Kit", checked: true },
-  { id: "cyclorama-wall", label: "Cyclorama Wall", checked: true },
-  { id: "high-speed-wifi", label: "High-Speed Wi-Fi", checked: true },
-  { id: "sound-insulation", label: "Sound Insulation", checked: true },
-  { id: "diffusers", label: "Diffusers", checked: true },
-  { id: "loading-bay", label: "Loading Bay", checked: true },
-  { id: "ac-heating", label: "A/C + Heating", checked: false },
-  { id: "parking", label: "Parking", checked: false },
+  { id: "lighting-kit", label: "Lighting Kit" },
+  { id: "cyclorama-wall", label: "Cyclorama Wall" },
+  { id: "high-speed-wifi", label: "High-Speed Wi-Fi" },
+  { id: "sound-insulation", label: "Sound Insulation" },
+  { id: "diffusers", label: "Diffusers" },
+  { id: "loading-bay", label: "Loading Bay" },
+  { id: "ac-heating", label: "A/C + Heating" },
+  { id: "parking", label: "Parking" },
 ]
 
+// Form Type
+type StudioForm = {
+  title: string
+  category: string
+  location: string
+  hourlyRate: string
+  securityDeposit: string
+  capacity: string
+  images: string[]
+  amenities: string[]
+  description: string
+}
+
+// Initial Form
+const initialForm: StudioForm = {
+  title: "",
+  category: "",
+  location: "",
+  hourlyRate: "",
+  securityDeposit: "",
+  capacity: "",
+  images: [],
+  amenities: [
+    "lighting-kit",
+    "cyclorama-wall",
+    "high-speed-wifi",
+    "sound-insulation",
+    "diffusers",
+    "loading-bay",
+  ],
+  description: "",
+}
+
+// Card Header Props
 type StudioCardHeaderProps = {
   icon: LucideIcon
   title: string
@@ -70,6 +91,7 @@ type StudioCardHeaderProps = {
   action?: ReactNode
 }
 
+// Reusable Card Header
 function StudioCardHeader({
   icon: Icon,
   title,
@@ -83,6 +105,7 @@ function StudioCardHeader({
           <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand">
             <Icon className="size-5" strokeWidth={1.8} />
           </span>
+
           <div className="min-w-0">
             <CardTitle
               role="heading"
@@ -91,11 +114,13 @@ function StudioCardHeader({
             >
               {title}
             </CardTitle>
+
             <CardDescription className="mt-1 text-[13px] leading-5 text-slate-500">
               {description}
             </CardDescription>
           </div>
         </div>
+
         {action}
       </div>
     </CardHeader>
@@ -103,46 +128,128 @@ function StudioCardHeader({
 }
 
 export default function AddStudioPage() {
+  const [form, setForm] = useState<StudioForm>(initialForm)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Update Form Fields
+  const update = <K extends keyof StudioForm>(
+    field: K,
+    value: StudioForm[K]
+  ) => {
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  // Handle Amenities
+  const handleAmenityChange = (
+    id: string,
+    checked: boolean
+  ) => {
+    if (checked) {
+      update("amenities", [...form.amenities, id])
+    } else {
+      update(
+        "amenities",
+        form.amenities.filter((item) => item !== id)
+      )
+    }
+  }
+
+  // Calculate Payout
+  const hourlyRate = Number(form.hourlyRate) || 0
+  const estimatedPayout = hourlyRate * 0.85
+
+  // Submit Form
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault()
+
+    if (!form.category) {
+      toast.error("Please select a studio category.")
+      return
+    }
+
+    if (form.images.length === 0) {
+      toast.error("Please add at least one studio image.")
+      return
+    }
+
+    if (
+      !Number.isFinite(Number(form.hourlyRate)) ||
+      Number(form.hourlyRate) <= 0
+    ) {
+      toast.error("Please enter a valid hourly rate.")
+      return
+    }
+
+    if (
+      !Number.isInteger(Number(form.capacity)) ||
+      Number(form.capacity) <= 0
+    ) {
+      toast.error("Please enter a valid studio capacity.")
+      return
+    }
+
+    const studioData = {
+      title: form.title.trim(),
+      category: form.category,
+      location: form.location.trim(),
+      hourlyRate: Number(form.hourlyRate),
+      securityDeposit: Number(form.securityDeposit) || 0,
+      capacity: Number(form.capacity),
+      images: form.images,
+      amenities: form.amenities,
+      description: form.description.trim(),
+    }
+
+    try {
+      setIsSubmitting(true)
+
+      const apiUrl =  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+
+      const response = await fetch(`${apiUrl}/add-studio`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        
+        body: JSON.stringify(studioData),
+      })
+
+      const result = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        throw new Error(
+          result?.message || "Failed to create studio."
+        )
+      }
+
+      toast.success("Studio added successfully!")
+
+      setForm(initialForm)
+
+      // Redirect after successful submission
+      window.location.href = "/my-listings"
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong."
+
+      toast.error(message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <main className="min-h-screen flex-1 bg-surface">
-      <div className="border-b border-slate-200/70">
-        <div className="mx-auto flex w-full max-w-[1380px] items-center px-6 py-3 sm:px-8">
-          <Breadcrumb>
-            <BreadcrumbList className="items-center gap-1.5 text-[12px] text-slate-500">
-              <BreadcrumbItem>
-                <BreadcrumbLink
-                  render={<Link href="/" />}
-                  className="inline-flex items-center gap-1.5 text-slate-600 hover:text-brand"
-                >
-                  <ArrowLeft className="size-3.5" />
-                  Host dashboard
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="text-slate-300">
-                /
-              </BreadcrumbSeparator>
-              <BreadcrumbItem>
-                <BreadcrumbLink
-                  render={<Link href="#" />}
-                  className="text-slate-600 hover:text-brand"
-                >
-                  Listings
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="text-slate-300">
-                /
-              </BreadcrumbSeparator>
-              <BreadcrumbItem>
-                <BreadcrumbPage className="text-slate-700">
-                  Add Studio
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
-      </div>
-
       <div className="mx-auto w-full max-w-[1380px] px-6 pt-7 pb-16 sm:px-8 lg:pb-20">
+
+        {/* Page Heading */}
         <div className="flex flex-wrap items-center gap-3">
           <h1
             id="page-title"
@@ -150,6 +257,7 @@ export default function AddStudioPage() {
           >
             List Your Studio
           </h1>
+
           <Badge
             variant="outline"
             className="h-5 border-brand/20 bg-brand-soft/60 px-2.5 text-[9px] font-semibold tracking-[0.14em] text-brand uppercase"
@@ -157,84 +265,106 @@ export default function AddStudioPage() {
             Host Portal
           </Badge>
         </div>
+
         <p className="mt-2 max-w-[560px] text-sm leading-6 text-slate-500">
           Publish your creative space to thousands of verified photographers,
           podcasters, and filmmakers in minutes.
         </p>
 
+        {/* Main Form */}
         <form
           aria-labelledby="page-title"
+          onSubmit={handleSubmit}
           className="mx-auto mt-8 w-full max-w-[880px] space-y-6"
         >
+
+          {/* Studio Essentials */}
           <Card className="gap-5 rounded-2xl py-7 shadow-[0_1px_2px_rgba(17,18,43,0.04)] ring-slate-200/80">
             <StudioCardHeader
               icon={ClipboardList}
               title="Studio Essentials"
               description="Core details creators see in search results"
             />
+
             <CardContent className="space-y-4 px-7">
+
+              {/* Studio Title */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between gap-4">
-                  <Label
-                    htmlFor="studio-title"
-                    className="text-xs font-medium text-slate-600"
-                  >
-                    Studio Title <span className="text-brand">*</span>
-                  </Label>
-                  <span className="text-[11px] text-slate-400">0/70</span>
-                </div>
+                <Label htmlFor="studio-title">
+                  Studio Title <span className="text-brand">*</span>
+                </Label>
+
                 <Input
                   id="studio-title"
-                  defaultValue="Arts District North Daylight Loft & Sound Stage"
+                  placeholder="Enter your studio title"
+                  value={form.title}
+                  onChange={(e) => update("title", e.target.value)}
                   maxLength={70}
+                  required
                   className="h-10 bg-white text-sm"
                 />
+
+                <p className="text-right text-[11px] text-slate-400">
+                  {form.title.length}/70
+                </p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
+
+                {/* Category */}
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="space-category"
-                    className="text-xs font-medium text-slate-600"
-                  >
+                  <Label>
                     Space Category <span className="text-brand">*</span>
                   </Label>
-                  <Select defaultValue="Photo Studio">
-                    <SelectTrigger
-                      id="space-category"
-                      className="h-10 w-full bg-white text-sm"
-                    >
+
+                  <Select
+                    value={form.category}
+                    onValueChange={(value) => update("category", value)}
+                  >
+                    <SelectTrigger className="h-10 w-full bg-white text-sm">
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
+
                     <SelectContent>
                       <SelectItem value="Photo Studio">
                         Photo Studio
                       </SelectItem>
-                      <SelectItem value="Sound Stage">Sound Stage</SelectItem>
-                      <SelectItem value="Podcast Room">
-                        Podcast Room
+
+                      <SelectItem value="Film Stage">
+                        Film Stage
                       </SelectItem>
-                      <SelectItem value="Music Suite">Music Suite</SelectItem>
-                      <SelectItem value="Art Workshop">
-                        Art Workshop
+
+                      <SelectItem value="Podcast Lounge">
+                        Podcast Lounge
+                      </SelectItem>
+
+                      <SelectItem value="Music Suite">
+                        Music Suite
+                      </SelectItem>
+
+                      <SelectItem value="Workshop">
+                        Workshop
                       </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
+                {/* Location */}
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="studio-address"
-                    className="text-xs font-medium text-slate-600"
-                  >
-                    Address &amp; Neighborhood{" "}
+                  <Label htmlFor="studio-address">
+                    Address & Neighborhood{" "}
                     <span className="text-brand">*</span>
                   </Label>
+
                   <div className="relative">
                     <MapPin className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+
                     <Input
                       id="studio-address"
-                      defaultValue="1240 E 6th St, Arts District, Los Angeles"
+                      placeholder="Enter studio address"
+                      value={form.location}
+                      onChange={(e) => update("location", e.target.value)}
+                      required
                       className="h-10 bg-white pl-9 text-sm"
                     />
                   </div>
@@ -243,70 +373,86 @@ export default function AddStudioPage() {
             </CardContent>
           </Card>
 
+          {/* Pricing & Capacity */}
           <Card className="gap-5 rounded-2xl py-7 shadow-[0_1px_2px_rgba(17,18,43,0.04)] ring-slate-200/80">
             <StudioCardHeader
               icon={Banknote}
               title="Pricing & Capacity"
               description="Define your hourly rate and guest limits."
             />
+
             <CardContent className="space-y-5 px-7">
               <div className="grid gap-4 sm:grid-cols-3">
+
+                {/* Hourly Rate */}
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="hourly-rate"
-                    className="text-xs font-medium text-slate-600"
-                  >
+                  <Label htmlFor="hourly-rate">
                     Hourly Rate ($/hr) <span className="text-brand">*</span>
                   </Label>
+
                   <div className="relative">
                     <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-slate-500">
                       $
                     </span>
+
                     <Input
                       id="hourly-rate"
-                      defaultValue="85"
-                      inputMode="decimal"
+                      type="number"
+                      min="1"
+                      placeholder="85"
+                      value={form.hourlyRate}
+                      onChange={(e) => update("hourlyRate", e.target.value)}
+                      required
                       className="h-10 bg-white pl-7 text-sm"
                     />
                   </div>
                 </div>
 
+                {/* Security Deposit */}
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="security-deposit"
-                    className="text-xs font-medium text-slate-600"
-                  >
+                  <Label htmlFor="security-deposit">
                     Security Deposit ($)
                   </Label>
+
                   <div className="relative">
                     <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-slate-500">
                       $
                     </span>
+
                     <Input
                       id="security-deposit"
-                      defaultValue="200"
-                      inputMode="decimal"
+                      type="number"
+                      min="0"
+                      placeholder="200"
+                      value={form.securityDeposit}
+                      onChange={(e) =>
+                        update("securityDeposit", e.target.value)
+                      }
                       className="h-10 bg-white pl-7 text-sm"
                     />
                   </div>
                 </div>
 
+                {/* Capacity */}
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="max-capacity"
-                    className="text-xs font-medium text-slate-600"
-                  >
+                  <Label htmlFor="max-capacity">
                     Max Capacity <span className="text-brand">*</span>
                   </Label>
+
                   <Input
                     id="max-capacity"
-                    defaultValue="18"
-                    inputMode="numeric"
+                    type="number"
+                    min="1"
+                    placeholder="18"
+                    value={form.capacity}
+                    onChange={(e) => update("capacity", e.target.value)}
+                    required
                     className="h-10 bg-white text-sm"
                   />
                 </div>
               </div>
 
+              {/* Estimated Payout */}
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4">
                 <p className="text-[11px] text-slate-500">
                   Estimated Hour Payout{" "}
@@ -314,91 +460,39 @@ export default function AddStudioPage() {
                     (after 15% platform fee)
                   </span>
                 </p>
-                <p className="text-xs font-semibold text-brand">$68.75 / hr</p>
+
+                <p className="text-xs font-semibold text-brand">
+                  ${estimatedPayout.toFixed(2)} / hr
+                </p>
               </div>
             </CardContent>
           </Card>
 
+          {/* Studio Photos */}
           <Card className="gap-5 rounded-2xl py-7 shadow-[0_1px_2px_rgba(17,18,43,0.04)] ring-slate-200/80">
             <StudioCardHeader
               icon={ImagePlus}
               title="Studio Photos"
-              description="Showcase your daylight and equipment."
+              description="Add studio images using image URLs."
               action={
                 <Badge
                   variant="secondary"
-                  className="h-5 shrink-0 bg-brand-soft px-2 text-[9px] font-semibold tracking-[0.08em] text-brand uppercase"
+                  className="shrink-0"
                 >
-                  1/10 Uploaded
+                  {form.images.length}/10 Added
                 </Badge>
               }
             />
-            <CardContent className="space-y-3 px-7">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="flex aspect-[4/3] min-h-[200px] cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50/80 px-6 py-8 text-center transition-colors hover:border-brand/40 hover:bg-brand-soft/30">
-                  <span className="grid size-9 place-items-center rounded-full bg-white text-slate-500 shadow-sm">
-                    <UploadCloud className="size-4" />
-                  </span>
-                  <span className="mt-3 text-sm font-medium text-slate-700">
-                    Drag &amp; drop photos
-                  </span>
-                  <span className="mt-1 text-[11px] text-slate-500">
-                    PNG, JPG, or WEBP up to 10MB
-                  </span>
-                  <span className="mt-3 text-xs font-semibold text-brand">
-                    Browse files
-                  </span>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/png,image/jpeg,image/webp"
-                    className="sr-only"
-                  />
-                </label>
 
-                <div className="relative aspect-[4/3] min-h-[200px] overflow-hidden rounded-xl bg-slate-100">
-                  <Image
-                    src="/images/banner.jpg"
-                    alt="Preview of The Loft Daylight Studio"
-                    fill
-                    sizes="(min-width: 640px) 420px, 100vw"
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent p-3">
-                    <p className="text-[11px] font-medium text-white">
-                      The Loft Daylight Studio
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    aria-label="Photo options"
-                    className="absolute top-2 right-2 grid size-7 place-items-center rounded-full bg-black/35 text-white backdrop-blur transition-colors hover:bg-black/50"
-                  >
-                    <MoreHorizontal className="size-4" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between gap-4">
-                <a
-                  href="https://images.unsplash.com/photo-1598928506311-c55ded91a20c"
-                  className="min-w-0 flex-1 truncate text-[11px] text-slate-500 hover:text-brand"
-                >
-                  https://images.unsplash.com/photo-1598928506311-c55ded91a20c
-                </a>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-8 shrink-0 rounded-lg border-brand/20 px-3 text-[11px] font-semibold text-brand hover:bg-brand-soft hover:text-brand"
-                >
-                  <Eye className="size-3.5" />
-                  Preview
-                </Button>
-              </div>
+            <CardContent className="px-7">
+              <ImageUrlUpload
+                value={form.images}
+                onChange={(images) => update("images", images)}
+              />
             </CardContent>
           </Card>
 
+          {/* Amenities */}
           <Card className="gap-5 rounded-2xl py-7 shadow-[0_1px_2px_rgba(17,18,43,0.04)] ring-slate-200/80">
             <StudioCardHeader
               icon={SlidersHorizontal}
@@ -406,22 +500,27 @@ export default function AddStudioPage() {
               description="Select key equipment included with booking."
               action={
                 <span className="shrink-0 pt-1 text-[10px] font-semibold tracking-[0.12em] text-brand uppercase">
-                  6 Selected
+                  {form.amenities.length} Selected
                 </span>
               }
             />
+
             <CardContent className="px-7">
               <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
-                {amenities.map(({ id, label, checked }) => (
+                {amenities.map(({ id, label }) => (
                   <div key={id} className="flex items-center gap-2">
                     <Checkbox
                       id={id}
-                      defaultChecked={checked}
+                      checked={form.amenities.includes(id)}
+                      onCheckedChange={(checked) =>
+                        handleAmenityChange(id, checked === true)
+                      }
                       className="border-slate-300 data-checked:border-brand data-checked:bg-brand data-checked:text-white"
                     />
+
                     <Label
                       htmlFor={id}
-                      className="text-xs font-normal text-slate-600"
+                      className="cursor-pointer text-xs font-normal text-slate-600"
                     >
                       {label}
                     </Label>
@@ -431,42 +530,64 @@ export default function AddStudioPage() {
             </CardContent>
           </Card>
 
+          {/* Description */}
           <Card className="gap-5 rounded-2xl py-7 shadow-[0_1px_2px_rgba(17,18,43,0.04)] ring-slate-200/80">
             <StudioCardHeader
               icon={FileText}
               title="Studio Description"
               description="Describe your space in detail."
             />
+
             <CardContent className="px-7">
               <Textarea
                 id="studio-description"
-                defaultValue="A pristine 2,400 sq. ft. commercial production studio featuring a 24'x20' full cove seamless daylight with motorized blackout shades for full lighting control. Acoustically treated STC-50 partitions make this space optimal for photo, video, and audio production."
+                placeholder="Describe your studio, equipment, facilities and other details..."
+                value={form.description}
+                onChange={(e) => update("description", e.target.value)}
+                required
+                maxLength={2000}
                 className="min-h-[130px] resize-none bg-white text-sm leading-6"
               />
+
+              <p className="mt-2 text-right text-[11px] text-slate-400">
+                {form.description.length}/2000
+              </p>
             </CardContent>
           </Card>
 
+          {/* Form Actions */}
           <div className="flex flex-col gap-4 pt-1 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-5">
               <button
                 type="button"
+                onClick={() => {
+                  setForm(initialForm)
+                  toast.success("Form cleared.")
+                }}
                 className="text-sm font-medium text-ink transition-colors hover:text-brand"
               >
-                Save Draft
+                Clear Form
               </button>
+
               <button
                 type="button"
+                onClick={() => window.history.back()}
                 className="text-sm text-slate-500 transition-colors hover:text-ink"
               >
                 Cancel
               </button>
             </div>
+
             <Button
-              type="button"
+              type="submit"
+              disabled={isSubmitting}
               className="h-11 w-full rounded-full bg-brand px-6 text-sm font-semibold text-white shadow-[0_12px_24px_-14px_rgba(98,56,245,0.9)] hover:bg-brand-strong sm:w-auto"
             >
               <CheckCircle2 className="size-4" />
-              Save &amp; Submit for Review
+
+              {isSubmitting
+                ? "Submitting..."
+                : "Save & Submit for Review"}
             </Button>
           </div>
         </form>

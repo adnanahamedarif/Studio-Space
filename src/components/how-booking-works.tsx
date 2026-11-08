@@ -61,6 +61,7 @@ export function HowBookingWorks() {
 
         <div className="mt-12 text-center">
           <Button
+            nativeButton={false}
             render={<a href="#how-it-works" />}
             className="h-10 rounded-full bg-brand px-6 text-sm font-semibold text-white shadow-[0_12px_24px_-14px_rgba(98,56,245,0.9)] hover:bg-brand-strong"
           >

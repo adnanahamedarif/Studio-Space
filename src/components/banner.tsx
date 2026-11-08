@@ -1,5 +1,5 @@
 import Image from "next/image"
-import { SlidersHorizontal, Star, Video, Zap } from "lucide-react"
+import { SlidersHorizontal, Video, Zap } from "lucide-react"
 
 const features = [
   { label: "Instant booking", icon: Zap },

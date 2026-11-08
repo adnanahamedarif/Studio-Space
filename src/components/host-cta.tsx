@@ -18,6 +18,7 @@ export function HostCta() {
             </p>
           </div>
           <Button
+            nativeButton={false}
             render={<a href="#list-your-space" />}
             className="h-11 shrink-0 self-start rounded-full bg-white px-6 text-sm font-semibold text-ink hover:bg-white/90 sm:self-auto"
           >
