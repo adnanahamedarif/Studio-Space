@@ -532,8 +532,8 @@ export default function ExploreStudiosPage() {
 
                                         <Button
 
-                                            size="sm"
-                                            className="rounded-full bg-violet-600 py-4 px-4  hover:bg-violet-700"
+                                            
+                                            className=" cursor-pointer rounded-full bg-violet-600 py-5 px-4  hover:bg-violet-700 "
                                         >
                                             <Link href={`/studios/${studio._id}`}>
                                                 View Details

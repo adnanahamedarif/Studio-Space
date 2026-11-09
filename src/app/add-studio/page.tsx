@@ -319,7 +319,9 @@ export default function AddStudioPage() {
 
                   <Select
                     value={form.category}
-                    onValueChange={(value) => update("category", value)}
+                    onValueChange={(value) => {
+                      if (value !== null) update("category", value)
+                    }}
                   >
                     <SelectTrigger className="h-10 w-full bg-white text-sm">
                       <SelectValue placeholder="Select a category" />
