@@ -1,7 +1,22 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
-import { UserRound } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { User, UserRound } from "lucide-react"
 import { cn } from "cn"
+import { auth } from "@/lib/auth"
+import { authClient } from "@/lib/auth-client"
+import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Button } from "./ui/button"
 
 const links = [
   { label: "Home", href: "/", active: true },
@@ -11,6 +26,15 @@ const links = [
 ]
 
 export function Navbar() {
+  const {data:section}=authClient.useSession()
+    const user = section?.user
+   console.log(user);
+  
+
+
+   const handlesignout=()=>{
+    authClient.signOut();
+   }
   return (
     <header className="relative z-10">
       <div className="mx-auto flex min-h-20 w-full max-w-[1380px] flex-wrap items-center gap-x-4 gap-y-3 px-6 py-4 sm:gap-x-8 sm:px-8 min-[900px]:grid min-[900px]:grid-cols-[1fr_auto_1fr]">
@@ -45,7 +69,33 @@ export function Navbar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-3 sm:gap-5 min-[900px]:ml-0 min-[900px]:justify-self-end">
-          <Link
+
+        {user?
+        <Popover>
+  <PopoverTrigger render={<Avatar>
+  <AvatarImage referrerPolicy="no-referrer" src={user?.image as string} alt="@shadcn" />
+  <AvatarFallback>{user?.name.charAt(0)}</AvatarFallback>
+  <AvatarBadge className="bg-green-600 dark:bg-green-800" />
+</Avatar>}>
+    Open Popover
+  </PopoverTrigger>
+  <PopoverContent>
+    <PopoverHeader>
+      <PopoverTitle>{user?.name}</PopoverTitle>
+      <PopoverDescription>{user?.email}</PopoverDescription>
+      <Link
+            href="/profile"
+            className="hidden text-[15px] font-medium text-ink transition-colors hover:text-brand sm:inline py-5"
+          >
+            Profile
+          </Link>
+      <Button onClick={handlesignout} variant={'destructive'}>Logout</Button>
+      
+    </PopoverHeader>
+  </PopoverContent>
+</Popover>:
+<>
+ <Link
             href="/login"
             className="hidden text-[15px] font-medium text-ink transition-colors hover:text-brand sm:inline"
           >
@@ -62,8 +112,16 @@ export function Navbar() {
             aria-label="Open account menu"
             className="hidden size-10 place-items-center rounded-full bg-brand text-white transition-colors hover:bg-brand-strong sm:grid"
           >
-            <UserRound className="size-[18px]" strokeWidth={2.2} />
+
+
+           
+
           </Link>
+
+</>
+      }
+
+         
         </div>
       </div>
     </header>

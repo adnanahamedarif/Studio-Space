@@ -6,7 +6,6 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import toast from "react-hot-toast"
 
-//import { authClient } from "@/lib/auth-client"
 
 import {
   User,
@@ -23,6 +22,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { authClient } from "@/lib/auth-client"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -41,10 +41,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    if (!agreeTerms) {
-      toast.error("Please accept the Terms and Privacy Policy")
-      return
-    }
+   
 
     if (form.password.length < 8) {
       toast.error("Password must be at least 8 characters")
@@ -95,7 +92,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="relative flex min-h-[calc(100vh-70px)] items-center justify-center overflow-hidden bg-[#f8f6ff] px-4 py-10">
+    <main className="relative flex  items-center justify-center overflow-hidden bg-[#f8f6ff] px-4 py-10">
 
       {/* Background Decoration */}
       <div className="pointer-events-none absolute -top-32 left-1/2 size-96 -translate-x-1/2 rounded-full bg-violet-200/40 blur-3xl" />
@@ -153,6 +150,7 @@ export default function RegisterPage() {
                 <Input
                   id="name"
                   type="text"
+                  name="name"
                   placeholder="e.g. Alex Rivers"
                   value={form.name}
                   onChange={(e) =>
@@ -176,6 +174,7 @@ export default function RegisterPage() {
                 <Input
                   id="email"
                   type="email"
+                  name="email"
                   placeholder="you@creative.studio.com"
                   value={form.email}
                   onChange={(e) =>
@@ -202,6 +201,7 @@ export default function RegisterPage() {
                 <Input
                   id="image"
                   type="url"
+                  name="image"
                   placeholder="https://example.com/avatar.jpg"
                   value={form.image}
                   onChange={(e) =>
@@ -226,6 +226,7 @@ export default function RegisterPage() {
 
                 <Input
                   id="password"
+                  name="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Create a secure password"
                   value={form.password}
