@@ -39,7 +39,7 @@ type Studio = {
   description: string
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL
+const API_URL = "http://localhost:8000"
 
 const amenityLabels: Record<string, string> = {
   "lighting-kit": "Professional Lighting Kit",
