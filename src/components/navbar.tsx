@@ -66,18 +66,41 @@ export function Navbar() {
               {link.label}
             </a>
           ))}
+           {user?(
+           <>
+              <Link href={'my-booking'}  className="hidden text-[15px] font-medium text-ink transition-colors hover:text-brand sm:inline py-5">
+         My Bookings
+         </Link>
+
+          <Link href={'my-booking'}  className="hidden text-[15px] font-medium text-ink transition-colors hover:text-brand sm:inline py-5">
+         My Studio Listings
+        
+         </Link>
+           
+           </>
+          
+        
+            ) :
+        <>
+        
+        </>
+        
+        }
         </nav>
+       
 
         <div className="ml-auto flex items-center gap-3 sm:gap-5 min-[900px]:ml-0 min-[900px]:justify-self-end">
 
         {user?
+     
+
         <Popover>
   <PopoverTrigger render={<Avatar>
-  <AvatarImage referrerPolicy="no-referrer" src={user?.image as string} alt="@shadcn" />
+  <AvatarImage referrerPolicy="no-referrer" src={user?.image as string} />
   <AvatarFallback>{user?.name.charAt(0)}</AvatarFallback>
   <AvatarBadge className="bg-green-600 dark:bg-green-800" />
 </Avatar>}>
-    Open Popover
+    
   </PopoverTrigger>
   <PopoverContent>
     <PopoverHeader>
@@ -87,7 +110,7 @@ export function Navbar() {
             href="/profile"
             className="hidden text-[15px] font-medium text-ink transition-colors hover:text-brand sm:inline py-5"
           >
-            Profile
+            My Profile
           </Link>
       <Button onClick={handlesignout} variant={'destructive'}>Logout</Button>
       
@@ -107,16 +130,7 @@ export function Navbar() {
           >
             Register
           </Link>
-          <Link
-            href="/login"
-            aria-label="Open account menu"
-            className="hidden size-10 place-items-center rounded-full bg-brand text-white transition-colors hover:bg-brand-strong sm:grid"
-          >
-
-
-           
-
-          </Link>
+          
 
 </>
       }
