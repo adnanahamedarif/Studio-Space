@@ -4,7 +4,7 @@
 import { useState, type FormEvent, type ReactNode } from "react"
 import type { LucideIcon } from "lucide-react"
 import toast from "react-hot-toast"
-
+import { authClient } from "@/lib/auth-client"
 import {
   Banknote,
   CheckCircle2,
@@ -50,7 +50,6 @@ const amenities = [
   { id: "parking", label: "Parking" },
 ]
 
-// Form Type
 type StudioForm = {
   title: string
   category: string
@@ -63,7 +62,6 @@ type StudioForm = {
   description: string
 }
 
-// Initial Form
 const initialForm: StudioForm = {
   title: "",
   category: "",
@@ -83,7 +81,6 @@ const initialForm: StudioForm = {
   description: "",
 }
 
-// Card Header Props
 type StudioCardHeaderProps = {
   icon: LucideIcon
   title: string
@@ -91,7 +88,6 @@ type StudioCardHeaderProps = {
   action?: ReactNode
 }
 
-// Reusable Card Header
 function StudioCardHeader({
   icon: Icon,
   title,
@@ -128,10 +124,10 @@ function StudioCardHeader({
 }
 
 export default function AddStudioPage() {
+const { data: session, isPending } = authClient.useSession()
   const [form, setForm] = useState<StudioForm>(initialForm)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Update Form Fields
   const update = <K extends keyof StudioForm>(
     field: K,
     value: StudioForm[K]
@@ -142,7 +138,6 @@ export default function AddStudioPage() {
     }))
   }
 
-  // Handle Amenities
   const handleAmenityChange = (
     id: string,
     checked: boolean
@@ -166,6 +161,14 @@ export default function AddStudioPage() {
     event: FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault()
+
+
+    const ownerEmail = session?.user?.email
+
+    if (!ownerEmail) {
+      toast.error("Please login before adding a studio.")
+      return
+    }
 
     if (!form.category) {
       toast.error("Please select a studio category.")
@@ -208,15 +211,18 @@ export default function AddStudioPage() {
     try {
       setIsSubmitting(true)
 
-      const apiUrl =  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
 
       const response = await fetch(`${apiUrl}/add-studio`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        
-        body: JSON.stringify(studioData),
+
+        body: JSON.stringify({
+          ...studioData,
+          ownerEmail: ownerEmail,
+        }),
       })
 
       const result = await response.json().catch(() => null)
@@ -278,7 +284,6 @@ export default function AddStudioPage() {
           className="mx-auto mt-8 w-full max-w-[880px] space-y-6"
         >
 
-          {/* Studio Essentials */}
           <Card className="gap-5 rounded-2xl py-7 shadow-[0_1px_2px_rgba(17,18,43,0.04)] ring-slate-200/80">
             <StudioCardHeader
               icon={ClipboardList}
@@ -288,7 +293,6 @@ export default function AddStudioPage() {
 
             <CardContent className="space-y-4 px-7">
 
-              {/* Studio Title */}
               <div className="space-y-2">
                 <Label htmlFor="studio-title">
                   Studio Title <span className="text-brand">*</span>
@@ -311,7 +315,6 @@ export default function AddStudioPage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
 
-                {/* Category */}
                 <div className="space-y-2">
                   <Label>
                     Space Category <span className="text-brand">*</span>

@@ -5,7 +5,6 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import toast from "react-hot-toast"
 
-//import { authClient } from "@/lib/auth-client"
 
 import {
   Plus,
@@ -29,6 +28,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { authClient } from "@/lib/auth-client"
 
 type Studio = {
   _id: string
@@ -62,33 +62,46 @@ export default function MyListingsPage() {
 
   // Fetch user's studio listings
   useEffect(() => {
-    if (isSessionLoading) return
+    if (isSessionLoading || !userEmail) return
 
-    if (!userEmail) {
-      setStudios([])
-      setIsLoading(false)
-      return
-    }
+    let isActive = true
 
-    fetch(`${API_URL}/my-listings?email=${encodeURIComponent(userEmail)}`)
-      .then((response) => {
+    const loadListings = async () => {
+      setError("")
+      setIsLoading(true)
+
+      try {
+        const response = await fetch(
+          `${API_URL}/my-listings?email=${encodeURIComponent(userEmail)}`
+        )
+
         if (!response.ok) {
           throw new Error("Failed to load studio listings")
         }
 
-        return response.json()
-      })
-      .then((result) => {
+        const result = await response.json()
+
+        if (!isActive) return
+
         console.log("My Studio Listings:", result.studios)
         setStudios(result.studios || [])
-      })
-      .catch((error) => {
+      } catch (error) {
+        if (!isActive) return
+
         console.log(error)
         setError("Unable to load your studio listings")
-      })
-      .finally(() => {
-        setIsLoading(false)
-      })
+      } finally {
+        if (isActive) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadListings()
+
+    return () => {
+      isActive = false
+    }
   }, [userEmail, isSessionLoading])
 
   // Delete studio
@@ -158,9 +171,12 @@ export default function MyListingsPage() {
             Please login to manage your studio listings.
           </p>
 
-          <Button asChild className="mt-5 bg-violet-700">
-            <Link href="/login">Login</Link>
-          </Button>
+          <Link
+            href="/login"
+            className="mt-5 inline-flex items-center justify-center rounded-md bg-violet-700 px-4 py-2 text-sm font-medium text-white hover:bg-violet-800"
+          >
+            Login
+          </Link>
         </div>
       </main>
     )
@@ -186,15 +202,13 @@ export default function MyListingsPage() {
             </p>
           </div>
 
-          <Button
-            asChild
-            className="rounded-xl bg-violet-700 hover:bg-violet-800"
+          <Link
+            href="/add-studio"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-violet-700 px-4 text-sm font-semibold text-white transition hover:bg-violet-800"
           >
-            <Link href="/add-studio">
-              <Plus className="mr-2 size-4" />
-              Add New Studio
-            </Link>
-          </Button>
+            <Plus className="size-4" />
+            Add New Studio
+          </Link>
         </div>
 
         {/* Statistics */}
@@ -342,15 +356,15 @@ export default function MyListingsPage() {
                 Start by listing your first studio.
               </p>
 
-              <Button
-                asChild
-                className="mt-5 rounded-xl bg-violet-700 hover:bg-violet-800"
-              >
-                <Link href="/add-studio">
+              
+          
+                
+          
+                <Link href="/add-studio" className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-violet-700 px-4 text-sm font-semibold text-white transition hover:bg-violet-800" >
                   <Plus className="mr-2 size-4" />
                   Add Your First Studio
                 </Link>
-              </Button>
+             
             </div>
           )
         )}

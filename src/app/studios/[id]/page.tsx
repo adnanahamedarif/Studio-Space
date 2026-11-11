@@ -3,6 +3,11 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import toast from "react-hot-toast"
+import { authClient } from "@/lib/auth-client"
+import {
+  // existing icons...
+  Loader2,
+} from "lucide-react"
 
 import {
   MapPin,
@@ -70,6 +75,10 @@ export default function StudioDetailsPage() {
     message: "",
   })
 
+  const { data: session } = authClient.useSession()
+
+const [isBooking, setIsBooking] = useState(false)
+
   // Fetch studio details
  
 useEffect(() => {
@@ -132,22 +141,73 @@ useEffect(() => {
     ? bookingHours * studio.hourlyRate
     : 0
 
-  const handleBookingSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
 
-    if (!booking.date || !booking.startTime || !booking.endTime) {
-      toast.error("Please complete all booking details.")
-      return
-    }
+const handleBookingSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault()
 
-    if (bookingHours <= 0) {
-      toast.error("End time must be later than start time.")
-      return
-    }
-
-    toast.success("Booking details are ready!")
-    setBookingOpen(false)
+  // Check login
+  if (!session?.user?.email) {
+    toast.error("Please login before booking")
+    return
   }
+
+  // Check required fields
+  if (!booking.date || !booking.startTime || !booking.endTime) {
+    toast.error("Please complete all booking details.")
+    return
+  }
+
+  if (bookingHours <= 0) {
+    toast.error("End time must be later than start time.")
+    return
+  }
+
+  setIsBooking(true)
+
+  fetch(`${API_URL}/booking`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      studioId: studio?._id,
+      customerEmail: session.user.email,
+      bookingDate: booking.date,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      message: booking.message,
+    }),
+  })
+    .then(async (response) => {
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.message || "Booking failed")
+      }
+
+      return result
+    })
+    .then((result) => {
+      toast.success(result.message || "Booking request submitted!")
+
+      setBooking({
+        date: "",
+        startTime: "",
+        endTime: "",
+        message: "",
+      })
+
+      setBookingOpen(false)
+    })
+    .catch((error) => {
+      console.log("Booking error:", error)
+      toast.error(error.message || "Something went wrong")
+    })
+    .finally(() => {
+      setIsBooking(false)
+    })
+}
+
 
   if (isLoading) {
     return (
@@ -561,13 +621,25 @@ useEffect(() => {
               </div>
             </div>
 
-            <Button
-              type="submit"
-              className="h-11 w-full rounded-xl bg-violet-700 hover:bg-violet-800"
-            >
-              <CalendarDays className="mr-2 size-4" />
-              Continue Booking
-            </Button>
+            
+<Button
+  type="submit"
+  disabled={isBooking || bookingHours <= 0}
+  className="h-11 w-full rounded-xl bg-violet-700 hover:bg-violet-800"
+>
+  {isBooking ? (
+    <>
+      <Loader2 className="mr-2 size-4 animate-spin" />
+      Submitting...
+    </>
+  ) : (
+    <>
+      <CalendarDays className="mr-2 size-4" />
+      Continue Booking
+    </>
+  )}
+</Button>
+
           </form>
         </DialogContent>
       </Dialog>
