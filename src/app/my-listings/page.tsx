@@ -314,16 +314,13 @@ export default function MyListingsPage() {
 
                     {/* Actions */}
                     <div className="flex shrink-0 flex-row gap-2 sm:flex-col sm:justify-center">
-                      <Button
-                        asChild
-                        size="sm"
-                        className="flex-1 rounded-lg bg-violet-700 hover:bg-violet-800 sm:flex-none"
+                      <Link
+                        href={`/studios/edit/${studio._id}`}
+                        className="flex flex-1 items-center justify-center rounded-lg bg-violet-700 px-3 py-2 text-sm font-medium text-white transition hover:bg-violet-800 sm:flex-none"
                       >
-                        <Link href={`/studios/edit/${studio._id}`}>
-                          <Pencil className="mr-1.5 size-3.5" />
-                          Update
-                        </Link>
-                      </Button>
+                        <Pencil className="mr-1.5 size-3.5" />
+                        Update
+                      </Link>
 
                       <Button
                         type="button"
@@ -356,15 +353,15 @@ export default function MyListingsPage() {
                 Start by listing your first studio.
               </p>
 
-              
-          
-                
-          
-                <Link href="/add-studio" className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-violet-700 px-4 text-sm font-semibold text-white transition hover:bg-violet-800" >
-                  <Plus className="mr-2 size-4" />
-                  Add Your First Studio
-                </Link>
-             
+
+
+
+
+              <Link href="/add-studio" className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-violet-700 px-4 text-sm font-semibold text-white transition hover:bg-violet-800" >
+                <Plus className="mr-2 size-4" />
+                Add Your First Studio
+              </Link>
+
             </div>
           )
         )}
