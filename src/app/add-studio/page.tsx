@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { getTokenFromClient } from "@/lib/getTokenFromClient"
 
 // Amenities
 const amenities = [
@@ -213,10 +214,13 @@ const { data: session, isPending } = authClient.useSession()
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
 
+      const token = await getTokenFromClient();
+
       const response = await fetch(`${apiUrl}/add-studio`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+           Authorization: `Bearer ${token}`
         },
 
         body: JSON.stringify({

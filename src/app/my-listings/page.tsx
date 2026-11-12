@@ -15,6 +15,11 @@ import {
   Image as ImageIcon,
   Loader2,
   Building2,
+  CalendarDays,
+  Clock,
+  ChevronDown,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -29,6 +34,20 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { authClient } from "@/lib/auth-client"
+import { getTokenFromClient } from "@/lib/getTokenFromClient"
+
+type Booking = {
+  _id: string
+  studioId: string
+  studioTitle: string
+  customerEmail: string
+  bookingDate: string
+  startTime: string
+  endTime: string
+  totalHours: number
+  totalPrice: number
+  status: "Pending" | "Confirmed" | "Completed" | "Cancelled"
+}
 
 type Studio = {
   _id: string
@@ -60,60 +79,94 @@ export default function MyListingsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
+  // View bookings for a selected studio
+  const [openStudioId, setOpenStudioId] = useState<string | null>(null)
+  const [studioBookings, setStudioBookings] = useState<Booking[]>([])
+  const [isBookingsLoading, setIsBookingsLoading] = useState(false)
+  const [bookingActionId, setBookingActionId] = useState<string | null>(null)
+
   // Fetch user's studio listings
-  useEffect(() => {
-    if (isSessionLoading || !userEmail) return
+useEffect(() => {
+  if (isSessionLoading) return;
 
-    let isActive = true
+  if (!userEmail) {
+    setIsLoading(false);
+    return;
+  }
 
-    const loadListings = async () => {
-      setError("")
-      setIsLoading(true)
+  let isActive = true;
 
-      try {
-        const response = await fetch(
-          `${API_URL}/my-listings?email=${encodeURIComponent(userEmail)}`
-        )
+  const loadListings = async () => {
+    setError("");
+    setIsLoading(true);
 
-        if (!response.ok) {
-          throw new Error("Failed to load studio listings")
-        }
+    try {
+      const token = await getTokenFromClient();
 
-        const result = await response.json()
+      if (!token) {
+        throw new Error("Please login again.");
+      }
 
-        if (!isActive) return
+      const response = await fetch(`${API_URL}/my-listings`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        console.log("My Studio Listings:", result.studios)
-        setStudios(result.studios || [])
-      } catch (error) {
-        if (!isActive) return
+      const result = await response.json();
 
-        console.log(error)
-        setError("Unable to load your studio listings")
-      } finally {
-        if (isActive) {
-          setIsLoading(false)
-        }
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to load listings");
+      }
+
+      if (!isActive) return;
+
+      console.log("My Listings:", result);
+
+      setStudios(result.studios || []);
+
+    } catch (error) {
+      if (!isActive) return;
+
+      console.log(error);
+
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Unable to load listings"
+      );
+
+    } finally {
+      if (isActive) {
+        setIsLoading(false);
       }
     }
+  };
 
-    loadListings()
+  loadListings();
 
-    return () => {
-      isActive = false
-    }
-  }, [userEmail, isSessionLoading])
+  return () => {
+    isActive = false;
+  };
+}, [userEmail, isSessionLoading]);
+
 
   // Delete studio
-  const handleDelete = () => {
+  const handleDelete = async() => {
     if (!deleteId || !userEmail) return
 
     setIsDeleting(true)
+          const token = await getTokenFromClient();
+
 
     fetch(
+      
       `${API_URL}/my-listings/${deleteId}?email=${encodeURIComponent(userEmail)}`,
       {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
     )
       .then(async (response) => {
@@ -140,6 +193,122 @@ export default function MyListingsPage() {
       .finally(() => {
         setIsDeleting(false)
       })
+  }
+
+
+
+const handleViewBookings = async (studio: Studio) => {
+  if (openStudioId === studio._id) {
+    setOpenStudioId(null);
+    setStudioBookings([]);
+    return;
+  }
+
+  setOpenStudioId(studio._id);
+  setStudioBookings([]);
+  setIsBookingsLoading(true);
+
+  try {
+    // Get JWT token
+    const token = await getTokenFromClient();
+
+    if (!token) {
+      throw new Error("Please login again.");
+    }
+
+    // Fetch host bookings
+    const response = await fetch(
+      `${API_URL}/host-bookings?studioId=${studio._id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || "Failed to load bookings");
+    }
+
+    setStudioBookings(result.bookings || []);
+
+  } catch (error) {
+    console.log("Host Bookings Error:", error);
+
+    toast.error(
+      error instanceof Error
+        ? error.message
+        : "Unable to load bookings"
+    );
+
+  } finally {
+    setIsBookingsLoading(false);
+  }
+};
+
+  // Approve or reject a booking request
+  const handleBookingAction = async (
+    
+    bookingId: string,
+    action: "approve" | "reject"
+  ) => {
+    if (!userEmail) return
+
+    try {
+      setBookingActionId(bookingId)
+        const token = await getTokenFromClient();
+
+
+      const response = await fetch(
+        `${API_URL}/bookings/${bookingId}/${action}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ hostEmail: userEmail }),
+        }
+      )
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.message || `Failed to ${action} booking`)
+      }
+
+      setStudioBookings((previous) =>
+        previous.map((booking) =>
+          booking._id === bookingId
+            ? {
+                ...booking,
+                status: action === "approve" ? "Confirmed" : "Cancelled",
+              }
+            : booking
+        )
+      )
+
+      toast.success(
+        result.message ||
+          (action === "approve" ? "Booking approved!" : "Booking rejected!")
+      )
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong"
+      )
+    } finally {
+      setBookingActionId(null)
+    }
+  }
+
+  const formatBookingDate = (date: string) => {
+    if (!date) return "Date unavailable"
+    return new Date(`${date.slice(0, 10)}T12:00:00`).toLocaleDateString(
+      "en-US",
+      { month: "short", day: "numeric", year: "numeric" }
+    )
   }
 
   // Loading
@@ -326,6 +495,22 @@ export default function MyListingsPage() {
                         type="button"
                         size="sm"
                         variant="outline"
+                        onClick={() => handleViewBookings(studio)}
+                        className="flex-1 rounded-lg border-violet-200 text-violet-700 hover:bg-violet-50 sm:flex-none"
+                      >
+                        <CalendarDays className="mr-1.5 size-3.5" />
+                        View Bookings
+                        <ChevronDown
+                          className={`ml-1 size-3.5 transition-transform ${
+                            openStudioId === studio._id ? "rotate-180" : ""
+                          }`}
+                        />
+                      </Button>
+
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
                         onClick={() => setDeleteId(studio._id)}
                         className="flex-1 rounded-lg border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 sm:flex-none"
                       >
@@ -334,6 +519,112 @@ export default function MyListingsPage() {
                       </Button>
                     </div>
                   </div>
+
+                  {openStudioId === studio._id && (
+                    <div className="mt-5 border-t border-slate-100 pt-5">
+                      <div className="mb-4 flex items-center justify-between">
+                        <h3 className="font-bold text-slate-900">
+                          Booking Requests
+                        </h3>
+                        <Badge className="border-0 bg-amber-100 text-amber-700">
+                          {studioBookings.filter(
+                            (booking) => booking.status === "Pending"
+                          ).length} Pending
+                        </Badge>
+                      </div>
+
+                      {isBookingsLoading ? (
+                        <div className="flex items-center gap-2 py-6 text-sm text-slate-500">
+                          <Loader2 className="size-4 animate-spin" />
+                          Loading booking requests...
+                        </div>
+                      ) : studioBookings.length === 0 ? (
+                        <p className="rounded-lg bg-slate-50 p-5 text-center text-sm text-slate-500">
+                          No booking requests for this studio yet.
+                        </p>
+                      ) : (
+                        <div className="space-y-3">
+                          {studioBookings.map((booking) => (
+                            <div
+                              key={booking._id}
+                              className="rounded-xl border border-slate-200 p-4"
+                            >
+                              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+                                <div className="space-y-2">
+                                  <p className="text-sm font-semibold text-slate-900">
+                                    {booking.customerEmail}
+                                  </p>
+                                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-500">
+                                    <span className="flex items-center gap-1">
+                                      <CalendarDays className="size-3.5" />
+                                      {formatBookingDate(booking.bookingDate)}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <Clock className="size-3.5" />
+                                      {booking.startTime} - {booking.endTime}
+                                    </span>
+                                    <span>
+                                      {Number(booking.totalHours).toFixed(2)} hrs
+                                    </span>
+                                    <span className="font-semibold text-slate-700">
+                                      ${Number(booking.totalPrice).toFixed(2)}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <Badge
+                                  className={`w-fit border-0 ${
+                                    booking.status === "Pending"
+                                      ? "bg-amber-100 text-amber-700"
+                                      : booking.status === "Confirmed"
+                                        ? "bg-emerald-100 text-emerald-700"
+                                        : booking.status === "Completed"
+                                          ? "bg-violet-100 text-violet-700"
+                                          : "bg-red-100 text-red-700"
+                                  }`}
+                                >
+                                  {booking.status}
+                                </Badge>
+                              </div>
+
+                              {booking.status === "Pending" && (
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                  <Button
+                                    size="sm"
+                                    disabled={bookingActionId === booking._id}
+                                    onClick={() =>
+                                      handleBookingAction(booking._id, "approve")
+                                    }
+                                    className="bg-emerald-600 hover:bg-emerald-700"
+                                  >
+                                    {bookingActionId === booking._id ? (
+                                      <Loader2 className="mr-1.5 size-4 animate-spin" />
+                                    ) : (
+                                      <CheckCircle2 className="mr-1.5 size-4" />
+                                    )}
+                                    Approve
+                                  </Button>
+
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={bookingActionId === booking._id}
+                                    onClick={() =>
+                                      handleBookingAction(booking._id, "reject")
+                                    }
+                                    className="border-red-200 text-red-600 hover:bg-red-50"
+                                  >
+                                    <XCircle className="mr-1.5 size-4" />
+                                    Reject
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

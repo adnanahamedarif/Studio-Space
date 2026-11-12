@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { getTokenFromClient } from "@/lib/getTokenFromClient"
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
@@ -158,11 +159,14 @@ export default function EditStudio() {
     const loadStudio = async () => {
       try {
         setIsLoading(true)
+        const token = await getTokenFromClient()
 
-        // This API route should return the studio owned by the logged-in user.
-        const response = await fetch(
-          `${API_URL}/studios/${studioId}?email=${encodeURIComponent(userEmail)}`
-        )
+      const response = await fetch(`${API_URL}/studios/${studioId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
 
         const result = await response.json().catch(() => null)
 

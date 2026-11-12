@@ -38,46 +38,42 @@ export default function LoginPage() {
     password: "",
   })
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
 
-   
+const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
 
-    if (form.password.length < 8) {
-      toast.error("Password must be at least 8 characters")
-      return
-    }
-
-    if (
-      !/[A-Z]/.test(form.password) ||
-      !/[a-z]/.test(form.password)
-    ) {
-      toast.error("Password must contain uppercase and lowercase letters")
-      return
-    }
-
-    setIsLoading(true)
-
-    const { data, error } = await authClient.signIn.email({
-      
-      email: form.email,
-      password: form.password,
-      callbackURL: "/",
-    })
-
-    setIsLoading(false)
-
-    if (error) {
-      toast.error(error.message || "Registration failed")
-      return
-    }
-
-    if (data) {
-      toast.success("Account created successfully!")
-      router.push("/")
-      router.refresh()
-    }
+  if (form.password.length < 8) {
+    toast.error("Password must be at least 8 characters");
+    return;
   }
+
+  setIsLoading(true);
+
+  const { error } = await authClient.signIn.email({
+    email: form.email,
+    password: form.password,
+  });
+
+  if (error) {
+    toast.error(error.message);
+    setIsLoading(false);
+    return;
+  }
+
+  // Get JWT after successful login
+  const { data, error: tokenError } = await authClient.token();
+
+  console.log("JWT:", data?.token);
+  console.log("Token Error:", tokenError);
+
+  setIsLoading(false);
+
+  toast.success("Login successful!");
+
+  router.push("/");
+  router.refresh();
+};
+
 
   const handleGoogleSignup = async () => {
     const { error } = await authClient.signIn.social({

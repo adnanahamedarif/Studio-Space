@@ -30,6 +30,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { getTokenFromClient } from "@/lib/getTokenFromClient"
 
 type Studio = {
   _id: string
@@ -79,7 +80,6 @@ export default function StudioDetailsPage() {
 
 const [isBooking, setIsBooking] = useState(false)
 
-  // Fetch studio details
  
 useEffect(() => {
   if (!id) return
@@ -142,7 +142,7 @@ useEffect(() => {
     : 0
 
 
-const handleBookingSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+const handleBookingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault()
 
   // Check login
@@ -163,11 +163,14 @@ const handleBookingSubmit = (e: React.FormEvent<HTMLFormElement>) => {
   }
 
   setIsBooking(true)
+  const token = await getTokenFromClient();
+
 
   fetch(`${API_URL}/booking`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       studioId: studio?._id,
