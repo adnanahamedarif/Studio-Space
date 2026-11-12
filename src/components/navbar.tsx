@@ -124,8 +124,11 @@ export function Navbar() {
 
           {user ? (
             <Popover>
-              <PopoverTrigger asChild>
-                <button className="flex items-center gap-2 rounded-full border border-slate-200 p-1.5 pr-3 transition hover:bg-accent">
+              <PopoverTrigger>
+                <button
+                  type="button"
+                  className="flex items-center gap-2 rounded-full border border-border p-1.5 pr-3 transition hover:bg-accent"
+                >
                   <Avatar className="size-9">
                     <AvatarImage
                       src={user.image || ""}
@@ -200,10 +203,11 @@ export function Navbar() {
               </Link>
 
               <Button
-                asChild
-                className="rounded-full bg-violet-700 px-6 hover:bg-violet-800"
+                nativeButton={false}
+                render={<Link href="/register" />}
+                className="rounded-full bg-brand px-6 text-white hover:bg-brand-strong"
               >
-                <Link href="/register">Register</Link>
+                Register
               </Button>
 
             </div>
@@ -243,7 +247,7 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-             <ThemeToggle />
+            <ThemeToggle />
 
             {user && dashboardLinks.map((link) => {
               const Icon = link.icon
@@ -296,7 +300,7 @@ export function Navbar() {
                   href="/register"
                   className="inline-flex flex-1 items-center justify-center rounded-md bg-violet-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-800"
                 >
-                 Register
+                  Register
                 </Link>
               </div>
             )}

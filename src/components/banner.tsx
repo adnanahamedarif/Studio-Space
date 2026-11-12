@@ -90,9 +90,9 @@ export function Banner() {
               src="/images/banner.jpg"
               alt="A photographer and models working inside a bright studio space"
               fill
-              loading="eager"
-              fetchPriority="high"
-              sizes="(min-width: 900px) 50vw, 100vw"
+              priority
+              quality={100}
+              sizes="(min-width: 1280px) 660px, (min-width: 900px) 50vw, 100vw"
               className="object-cover"
             />
 

@@ -478,7 +478,14 @@ export default function MyBookingsPage() {
               Sort by
             </span>
 
-            <Select value={sort} onValueChange={setSort}>
+            <Select
+              value={sort}
+              onValueChange={(value) => {
+                if (value !== null) {
+                  setSort(value)
+                }
+              }}
+            >
               <SelectTrigger className="h-9 w-[190px] border-0 bg-muted text-sm text-foreground">
                 <SelectValue />
               </SelectTrigger>
@@ -521,9 +528,8 @@ export default function MyBookingsPage() {
               className="border-border"
             >
               <RefreshCw
-                className={`mr-1.5 size-3 ${
-                  isLoading ? "animate-spin" : ""
-                }`}
+                className={`mr-1.5 size-3 ${isLoading ? "animate-spin" : ""
+                  }`}
               />
               Refresh
             </Button>
