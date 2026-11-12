@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState, type FormEvent, type ReactNode } from "react"
@@ -104,14 +105,16 @@ function StudioCardHeader({
           </span>
 
           <div className="min-w-0">
-            <CardTitle className="text-base font-semibold text-ink">
+            <CardTitle className="text-base font-semibold text-card-foreground">
               {title}
             </CardTitle>
-            <CardDescription className="mt-1 text-[13px] leading-5 text-slate-500">
+
+            <CardDescription className="mt-1 text-[13px] leading-5 text-muted-foreground">
               {description}
             </CardDescription>
           </div>
         </div>
+
         {action}
       </div>
     </CardHeader>
@@ -159,14 +162,14 @@ export default function EditStudio() {
     const loadStudio = async () => {
       try {
         setIsLoading(true)
+
         const token = await getTokenFromClient()
 
-      const response = await fetch(`${API_URL}/studios/${studioId}`, {
+        const response = await fetch(`${API_URL}/studios/${studioId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         })
-
 
         const result = await response.json().catch(() => null)
 
@@ -196,6 +199,7 @@ export default function EditStudio() {
         })
       } catch (error) {
         if (!isActive) return
+
         toast.error(
           error instanceof Error ? error.message : "Unable to load studio."
         )
@@ -268,13 +272,15 @@ export default function EditStudio() {
     try {
       setIsSubmitting(true)
 
-      // The backend should verify that this studio belongs to userEmail.
+      const token = await getTokenFromClient()
+
       const response = await fetch(
         `${API_URL}/studios/${studioId}?email=${encodeURIComponent(userEmail)}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(studioData),
         }
@@ -300,8 +306,8 @@ export default function EditStudio() {
 
   if (isPending || isLoading) {
     return (
-      <main className="grid min-h-[70vh] place-items-center bg-surface">
-        <div className="flex items-center gap-2 text-sm text-slate-500">
+      <main className="grid min-h-[70vh] place-items-center bg-surface transition-colors">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="size-5 animate-spin text-brand" />
           Loading studio...
         </div>
@@ -313,10 +319,14 @@ export default function EditStudio() {
     return (
       <main className="grid min-h-[70vh] place-items-center bg-surface px-4">
         <div className="text-center">
-          <h2 className="text-xl font-bold text-ink">Login Required</h2>
-          <p className="mt-2 text-sm text-slate-500">
+          <h2 className="text-xl font-bold text-foreground">
+            Login Required
+          </h2>
+
+          <p className="mt-2 text-sm text-muted-foreground">
             Please login to edit your studio listing.
           </p>
+
           <Button className="mt-5" onClick={() => router.push("/login")}>
             Login
           </Button>
@@ -326,12 +336,15 @@ export default function EditStudio() {
   }
 
   return (
-    <main className="min-h-screen flex-1 bg-surface">
+    <main className="min-h-screen flex-1 bg-surface transition-colors duration-300">
       <div className="mx-auto w-full max-w-[1380px] px-6 pt-7 pb-16 sm:px-8 lg:pb-20">
+
+        {/* Page Header */}
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-[30px] font-bold tracking-[-0.04em] text-ink sm:text-[36px]">
+          <h1 className="text-[30px] font-bold tracking-[-0.04em] text-foreground sm:text-[36px]">
             Edit Studio
           </h1>
+
           <Badge
             variant="outline"
             className="h-5 border-brand/20 bg-brand-soft/60 px-2.5 text-[9px] font-semibold tracking-[0.14em] text-brand uppercase"
@@ -340,21 +353,27 @@ export default function EditStudio() {
           </Badge>
         </div>
 
-        <p className="mt-2 max-w-[560px] text-sm leading-6 text-slate-500">
+        <p className="mt-2 max-w-[560px] text-sm leading-6 text-muted-foreground">
           Update your studio information, pricing, photos and facilities.
         </p>
 
-        <form onSubmit={handleSubmit} className="mx-auto mt-8 w-full max-w-[880px] space-y-6">
+        <form
+          onSubmit={handleSubmit}
+          className="mx-auto mt-8 w-full max-w-[880px] space-y-6"
+        >
+
           {/* Studio Essentials */}
-          <Card className="gap-5 rounded-2xl py-7 shadow-sm ring-slate-200/80">
+          <Card className="gap-5 rounded-2xl border-border bg-card py-7 text-card-foreground shadow-sm">
             <StudioCardHeader
               icon={ClipboardList}
               title="Studio Essentials"
               description="Core details creators see in search results"
             />
+
             <CardContent className="space-y-4 px-7">
               <div className="space-y-2">
                 <Label htmlFor="studio-title">Studio Title *</Label>
+
                 <Input
                   id="studio-title"
                   placeholder="Enter your studio title"
@@ -362,9 +381,10 @@ export default function EditStudio() {
                   onChange={(e) => update("title", e.target.value)}
                   maxLength={70}
                   required
-                  className="h-10 bg-white text-sm"
+                  className="h-10 border-border bg-background text-sm"
                 />
-                <p className="text-right text-[11px] text-slate-400">
+
+                <p className="text-right text-[11px] text-muted-foreground">
                   {form.title.length}/70
                 </p>
               </div>
@@ -372,15 +392,17 @@ export default function EditStudio() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Space Category *</Label>
+
                   <Select
                     value={form.category}
                     onValueChange={(value) => {
                       if (value !== null) update("category", value)
                     }}
                   >
-                    <SelectTrigger className="h-10 w-full bg-white text-sm">
+                    <SelectTrigger className="h-10 w-full border-border bg-background text-sm">
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
+
                     <SelectContent>
                       <SelectItem value="Photo Studio">Photo Studio</SelectItem>
                       <SelectItem value="Film Stage">Film Stage</SelectItem>
@@ -392,16 +414,20 @@ export default function EditStudio() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="studio-address">Address & Neighborhood *</Label>
+                  <Label htmlFor="studio-address">
+                    Address & Neighborhood *
+                  </Label>
+
                   <div className="relative">
-                    <MapPin className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+                    <MapPin className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+
                     <Input
                       id="studio-address"
                       placeholder="Enter studio address"
                       value={form.location}
                       onChange={(e) => update("location", e.target.value)}
                       required
-                      className="h-10 bg-white pl-9 text-sm"
+                      className="h-10 border-border bg-background pl-9 text-sm"
                     />
                   </div>
                 </div>
@@ -410,18 +436,23 @@ export default function EditStudio() {
           </Card>
 
           {/* Pricing & Capacity */}
-          <Card className="gap-5 rounded-2xl py-7 shadow-sm ring-slate-200/80">
+          <Card className="gap-5 rounded-2xl border-border bg-card py-7 text-card-foreground shadow-sm">
             <StudioCardHeader
               icon={Banknote}
               title="Pricing & Capacity"
               description="Define your hourly rate and guest limits."
             />
+
             <CardContent className="space-y-5 px-7">
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="hourly-rate">Hourly Rate ($/hr) *</Label>
+
                   <div className="relative">
-                    <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-slate-500">$</span>
+                    <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
+                      $
+                    </span>
+
                     <Input
                       id="hourly-rate"
                       type="number"
@@ -429,28 +460,35 @@ export default function EditStudio() {
                       value={form.hourlyRate}
                       onChange={(e) => update("hourlyRate", e.target.value)}
                       required
-                      className="h-10 bg-white pl-7 text-sm"
+                      className="h-10 border-border bg-background pl-7 text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="security-deposit">Security Deposit ($)</Label>
+                  <Label htmlFor="security-deposit">
+                    Security Deposit ($)
+                  </Label>
+
                   <div className="relative">
-                    <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-slate-500">$</span>
+                    <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
+                      $
+                    </span>
+
                     <Input
                       id="security-deposit"
                       type="number"
                       min="0"
                       value={form.securityDeposit}
                       onChange={(e) => update("securityDeposit", e.target.value)}
-                      className="h-10 bg-white pl-7 text-sm"
+                      className="h-10 border-border bg-background pl-7 text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="max-capacity">Max Capacity *</Label>
+
                   <Input
                     id="max-capacity"
                     type="number"
@@ -458,15 +496,19 @@ export default function EditStudio() {
                     value={form.capacity}
                     onChange={(e) => update("capacity", e.target.value)}
                     required
-                    className="h-10 bg-white text-sm"
+                    className="h-10 border-border bg-background text-sm"
                   />
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4">
-                <p className="text-[11px] text-slate-500">
-                  Estimated Hour Payout <span className="text-slate-400">(after 15% platform fee)</span>
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
+                <p className="text-[11px] text-muted-foreground">
+                  Estimated Hour Payout{" "}
+                  <span className="text-muted-foreground">
+                    (after 15% platform fee)
+                  </span>
                 </p>
+
                 <p className="text-xs font-semibold text-brand">
                   ${estimatedPayout.toFixed(2)} / hr
                 </p>
@@ -475,7 +517,7 @@ export default function EditStudio() {
           </Card>
 
           {/* Studio Photos */}
-          <Card className="gap-5 rounded-2xl py-7 shadow-sm ring-slate-200/80">
+          <Card className="gap-5 rounded-2xl border-border bg-card py-7 text-card-foreground shadow-sm">
             <StudioCardHeader
               icon={ImagePlus}
               title="Studio Photos"
@@ -486,6 +528,7 @@ export default function EditStudio() {
                 </Badge>
               }
             />
+
             <CardContent className="px-7">
               <ImageUrlUpload
                 value={form.images}
@@ -495,7 +538,7 @@ export default function EditStudio() {
           </Card>
 
           {/* Amenities */}
-          <Card className="gap-5 rounded-2xl py-7 shadow-sm ring-slate-200/80">
+          <Card className="gap-5 rounded-2xl border-border bg-card py-7 text-card-foreground shadow-sm">
             <StudioCardHeader
               icon={SlidersHorizontal}
               title="Amenities & Gear"
@@ -506,6 +549,7 @@ export default function EditStudio() {
                 </span>
               }
             />
+
             <CardContent className="px-7">
               <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
                 {amenities.map(({ id, label }) => (
@@ -516,9 +560,13 @@ export default function EditStudio() {
                       onCheckedChange={(checked) =>
                         handleAmenityChange(id, checked === true)
                       }
-                      className="border-slate-300 data-checked:border-brand data-checked:bg-brand data-checked:text-white"
+                      className="border-border data-checked:border-brand data-checked:bg-brand data-checked:text-white"
                     />
-                    <Label htmlFor={id} className="cursor-pointer text-xs font-normal text-slate-600">
+
+                    <Label
+                      htmlFor={id}
+                      className="cursor-pointer text-xs font-normal text-foreground"
+                    >
                       {label}
                     </Label>
                   </div>
@@ -528,12 +576,13 @@ export default function EditStudio() {
           </Card>
 
           {/* Description */}
-          <Card className="gap-5 rounded-2xl py-7 shadow-sm ring-slate-200/80">
+          <Card className="gap-5 rounded-2xl border-border bg-card py-7 text-card-foreground shadow-sm">
             <StudioCardHeader
               icon={FileText}
               title="Studio Description"
               description="Describe your space in detail."
             />
+
             <CardContent className="px-7">
               <Textarea
                 id="studio-description"
@@ -542,9 +591,10 @@ export default function EditStudio() {
                 onChange={(e) => update("description", e.target.value)}
                 required
                 maxLength={2000}
-                className="min-h-[130px] resize-none bg-white text-sm leading-6"
+                className="min-h-[130px] resize-none border-border bg-background text-sm leading-6"
               />
-              <p className="mt-2 text-right text-[11px] text-slate-400">
+
+              <p className="mt-2 text-right text-[11px] text-muted-foreground">
                 {form.description.length}/2000
               </p>
             </CardContent>
@@ -556,7 +606,7 @@ export default function EditStudio() {
               type="button"
               variant="outline"
               onClick={() => router.push("/my-listings")}
-              className="h-11 rounded-full px-6"
+              className="h-11 rounded-full border-border px-6"
             >
               Cancel
             </Button>

@@ -4,6 +4,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
+import ThemeToggle from "@/components/theme-toggle";
 import { useState } from "react"
 import {
   Menu,
@@ -69,7 +70,7 @@ export function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/95 shadow-sm backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 shadow-sm backdrop-blur-md">
       <div className="mx-auto flex min-h-20 max-w-[1380px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
 
         {/* Logo */}
@@ -94,7 +95,7 @@ export function Navbar() {
                 "whitespace-nowrap text-sm font-medium transition-colors hover:text-violet-700",
                 isActive(link.href)
                   ? "font-semibold text-violet-700"
-                  : "text-slate-600"
+                  : "text-muted-foreground"
               )}
             >
               {link.label}
@@ -109,12 +110,13 @@ export function Navbar() {
                 "whitespace-nowrap text-sm font-medium transition-colors hover:text-violet-700",
                 isActive(link.href)
                   ? "font-semibold text-violet-700"
-                  : "text-slate-600"
+                  : "text-muted-foreground"
               )}
             >
               {link.label}
             </Link>
           ))}
+          <ThemeToggle />
         </nav>
 
         {/* Right Side */}
@@ -123,7 +125,7 @@ export function Navbar() {
           {user ? (
             <Popover>
               <PopoverTrigger asChild>
-                <button className="flex items-center gap-2 rounded-full border border-slate-200 p-1.5 pr-3 transition hover:bg-slate-50">
+                <button className="flex items-center gap-2 rounded-full border border-slate-200 p-1.5 pr-3 transition hover:bg-accent">
                   <Avatar className="size-9">
                     <AvatarImage
                       src={user.image || ""}
@@ -134,11 +136,11 @@ export function Navbar() {
                     </AvatarFallback>
                   </Avatar>
 
-                  <span className="hidden max-w-28 truncate text-sm font-semibold text-slate-700 sm:block">
+                  <span className="hidden max-w-28 truncate text-sm font-semibold text-foreground sm:block">
                     {user.name}
                   </span>
 
-                  <ChevronDown className="size-4 text-slate-500" />
+                  <ChevronDown className="size-4 text-muted-foreground" />
                 </button>
               </PopoverTrigger>
 
@@ -147,7 +149,7 @@ export function Navbar() {
                   <p className="truncate text-sm font-semibold text-slate-900">
                     {user.name}
                   </p>
-                  <p className="truncate text-xs text-slate-500">
+                  <p className="truncate text-xs text-muted-foreground">
                     {user.email}
                   </p>
                 </div>
@@ -155,7 +157,7 @@ export function Navbar() {
                 <div className="space-y-1 py-2">
                   <Link
                     href="/profile"
-                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-violet-50 hover:text-violet-700"
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground transition hover:bg-violet-50 hover:text-violet-700"
                   >
                     <UserRound className="size-4" />
                     My Profile
@@ -168,7 +170,7 @@ export function Navbar() {
                       <Link
                         key={link.href}
                         href={link.href}
-                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-violet-50 hover:text-violet-700"
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground transition hover:bg-violet-50 hover:text-violet-700"
                       >
                         <Icon className="size-4" />
                         {link.label}
@@ -192,7 +194,7 @@ export function Navbar() {
             <div className="hidden items-center gap-3 sm:flex">
               <Link
                 href="/login"
-                className="px-3 py-2 text-sm font-semibold text-slate-700 transition hover:text-violet-700"
+                className="px-3 py-2 text-sm font-semibold text-foreground transition hover:text-violet-700"
               >
                 Login
               </Link>
@@ -203,13 +205,14 @@ export function Navbar() {
               >
                 <Link href="/register">Register</Link>
               </Button>
+
             </div>
           )}
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="rounded-lg p-2 text-slate-700 transition hover:bg-slate-100 lg:hidden"
+            className="rounded-lg p-2 text-foreground transition hover:bg-slate-100 lg:hidden"
             aria-label="Toggle navigation menu"
           >
             {mobileMenuOpen ? (
@@ -223,7 +226,7 @@ export function Navbar() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="border-t border-slate-100 bg-white px-5 py-4 shadow-lg lg:hidden">
+        <div className="border-t border-border 	bg-background px-5 py-4 shadow-lg lg:hidden">
           <nav className="flex flex-col gap-1">
             {links.map((link) => (
               <Link
@@ -234,12 +237,13 @@ export function Navbar() {
                   "rounded-lg px-3 py-3 text-sm font-medium transition hover:bg-violet-50 hover:text-violet-700",
                   isActive(link.href)
                     ? "bg-violet-50 text-violet-700"
-                    : "text-slate-700"
+                    : "text-foreground"
                 )}
               >
                 {link.label}
               </Link>
             ))}
+             <ThemeToggle />
 
             {user && dashboardLinks.map((link) => {
               const Icon = link.icon
@@ -249,7 +253,7 @@ export function Navbar() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition hover:bg-violet-50 hover:text-violet-700"
+                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-foreground transition hover:bg-violet-50 hover:text-violet-700"
                 >
                   <Icon className="size-4" />
                   {link.label}
@@ -264,7 +268,7 @@ export function Navbar() {
                 <Link
                   href="/profile"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-violet-50"
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-violet-50"
                 >
                   <UserRound className="size-4" />
                   My Profile
@@ -283,7 +287,7 @@ export function Navbar() {
               <div className="flex gap-3">
                 <Link
                   href="/login"
-                  className="inline-flex flex-1 items-center justify-center rounded-md border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  className="inline-flex flex-1 items-center justify-center rounded-md border border-slate-200 px-4 py-2 text-sm font-medium text-foreground transition hover:bg-accent"
                 >
                   Login
                 </Link>

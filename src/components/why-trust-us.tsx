@@ -1,3 +1,4 @@
+
 import {
   BadgeCheck,
   ClipboardCheck,
@@ -48,44 +49,60 @@ const trustPoints: TrustPoint[] = [
 
 export function WhyTrustUs() {
   return (
-    <section id="about" className="bg-surface py-16 lg:py-20">
+    <section
+      id="about"
+      className="bg-surface py-16 transition-colors duration-300 lg:py-20"
+    >
       <div className="mx-auto w-full max-w-[1380px] px-6 sm:px-8">
+
+        {/* Section Heading */}
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-[11px] font-semibold tracking-[0.18em] text-brand uppercase">
             Operational integrity
           </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-[-0.03em] text-ink sm:text-4xl">
+
+          <h2 className="mt-3 text-3xl font-bold tracking-[-0.03em] text-foreground sm:text-4xl">
             Why Creators &amp; Hosts Trust Us
           </h2>
-          <p className="mt-3 text-sm text-slate-500 sm:text-base">
+
+          <p className="mt-3 text-sm text-muted-foreground sm:text-base">
             Built specifically with creative professionals in mind.
           </p>
         </div>
 
+        {/* Trust Points */}
         <div className="mt-10 grid gap-4 sm:grid-cols-2 wide:grid-cols-4">
           {trustPoints.map(({ title, description, icon: Icon }) => (
             <Card
               key={title}
-              className="h-full gap-0 py-5 shadow-[0_12px_30px_-24px_rgba(17,18,43,0.35)] ring-slate-200/80"
+              className="h-full gap-0 border-border bg-card py-5 text-card-foreground shadow-[0_12px_30px_-24px_rgba(17,18,43,0.35)] transition-colors duration-300"
             >
               <CardContent className="flex h-full flex-col px-5">
+
+                {/* Icon */}
                 <span className="grid size-9 place-items-center rounded-lg bg-brand-soft text-brand">
                   <Icon className="size-[18px]" strokeWidth={1.8} />
                 </span>
+
+                {/* Title */}
                 <CardTitle
                   role="heading"
                   aria-level={3}
-                  className="mt-4 text-[15px] font-semibold text-ink"
+                  className="mt-4 text-[15px] font-semibold text-card-foreground"
                 >
                   {title}
                 </CardTitle>
-                <CardDescription className="mt-2 text-[13px] leading-5 text-slate-500">
+
+                {/* Description */}
+                <CardDescription className="mt-2 text-[13px] leading-5 text-muted-foreground">
                   {description}
                 </CardDescription>
+
               </CardContent>
             </Card>
           ))}
         </div>
+
       </div>
     </section>
   )

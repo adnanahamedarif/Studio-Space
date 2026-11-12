@@ -1,32 +1,32 @@
+
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import { useParams } from "next/navigation"
 import toast from "react-hot-toast"
 import { authClient } from "@/lib/auth-client"
-import {
-  // existing icons...
-  Loader2,
-} from "lucide-react"
 
 import {
+  Loader2,
   MapPin,
   Users,
-  Star,
   CalendarDays,
-  Clock,
   ShieldCheck,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Image as ImageIcon,
-  X,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -45,7 +45,7 @@ type Studio = {
   description: string
 }
 
-const API_URL = "http://localhost:8000"
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 const amenityLabels: Record<string, string> = {
   "lighting-kit": "Professional Lighting Kit",
@@ -68,6 +68,7 @@ export default function StudioDetailsPage() {
 
   const [activeImage, setActiveImage] = useState(0)
   const [bookingOpen, setBookingOpen] = useState(false)
+  const [isBooking, setIsBooking] = useState(false)
 
   const [booking, setBooking] = useState({
     date: "",
@@ -78,52 +79,43 @@ export default function StudioDetailsPage() {
 
   const { data: session } = authClient.useSession()
 
-const [isBooking, setIsBooking] = useState(false)
+  // Fetch Studio
+  useEffect(() => {
+    if (!id) return
 
- 
-useEffect(() => {
-  if (!id) return
+    const fetchStudio = async () => {
+      try {
+        setIsLoading(true)
+        setError("")
 
-  const fetchStudio = async () => {
-    try {
-      setIsLoading(true)
-      setError("")
+        const response = await fetch(`${API_URL}/studios/${id}`)
+        const result = await response.json()
 
-      const response = await fetch(`${API_URL}/studios/${id}`)
+        if (!response.ok) {
+          throw new Error(result.message || "Studio not found")
+        }
 
-      const result = await response.json()
+        const studioData = result.studio || result
 
+        setStudio(studioData)
+        setActiveImage(0)
+      } catch (error) {
+        console.error("Fetch studio error:", error)
 
-      if (!response.ok) {
-        throw new Error(result.message || "Studio not found")
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Something went wrong"
+        )
+      } finally {
+        setIsLoading(false)
       }
-
-      const studioData = result.studio || result
-
-      
-      setStudio(studioData)
-
-    } catch (error) {
-      console.error("Fetch studio error:", error)
-
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Something went wrong"
-      )
-
-    } finally {
-      setIsLoading(false)
     }
-  }
 
-  fetchStudio()
-}, [id])
+    fetchStudio()
+  }, [id])
 
-
-
-
-
+  // Calculate Booking Hours
   const getBookingHours = () => {
     if (!booking.startTime || !booking.endTime) return 0
 
@@ -137,60 +129,59 @@ useEffect(() => {
   }
 
   const bookingHours = getBookingHours()
+
   const totalPrice = studio
     ? bookingHours * studio.hourlyRate
     : 0
 
+  // Submit Booking
+  const handleBookingSubmit = async (
+    e: FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault()
 
-const handleBookingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault()
+    if (!session?.user?.email) {
+      toast.error("Please login before booking")
+      return
+    }
 
-  // Check login
-  if (!session?.user?.email) {
-    toast.error("Please login before booking")
-    return
-  }
+    if (!booking.date || !booking.startTime || !booking.endTime) {
+      toast.error("Please complete all booking details.")
+      return
+    }
 
-  // Check required fields
-  if (!booking.date || !booking.startTime || !booking.endTime) {
-    toast.error("Please complete all booking details.")
-    return
-  }
+    if (bookingHours <= 0) {
+      toast.error("End time must be later than start time.")
+      return
+    }
 
-  if (bookingHours <= 0) {
-    toast.error("End time must be later than start time.")
-    return
-  }
+    try {
+      setIsBooking(true)
 
-  setIsBooking(true)
-  const token = await getTokenFromClient();
+      const token = await getTokenFromClient()
 
+      const response = await fetch(`${API_URL}/booking`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          studioId: studio?._id,
+          customerEmail: session.user.email,
+          bookingDate: booking.date,
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          message: booking.message,
+        }),
+      })
 
-  fetch(`${API_URL}/booking`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-       Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      studioId: studio?._id,
-      customerEmail: session.user.email,
-      bookingDate: booking.date,
-      startTime: booking.startTime,
-      endTime: booking.endTime,
-      message: booking.message,
-    }),
-  })
-    .then(async (response) => {
       const result = await response.json()
 
       if (!response.ok) {
         throw new Error(result.message || "Booking failed")
       }
 
-      return result
-    })
-    .then((result) => {
       toast.success(result.message || "Booking request submitted!")
 
       setBooking({
@@ -201,44 +192,52 @@ const handleBookingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       })
 
       setBookingOpen(false)
-    })
-    .catch((error) => {
-      console.log("Booking error:", error)
-      toast.error(error.message || "Something went wrong")
-    })
-    .finally(() => {
+    } catch (error) {
+      console.error("Booking error:", error)
+
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong"
+      )
+    } finally {
       setIsBooking(false)
-    })
-}
+    }
+  }
 
-
+  // Loading State
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-[#faf9ff] px-4 py-8">
+      <main className="min-h-screen bg-background px-4 py-8">
         <div className="mx-auto max-w-7xl animate-pulse space-y-6">
-          <div className="aspect-[16/7] rounded-2xl bg-slate-200" />
+          <div className="aspect-[16/7] rounded-2xl bg-muted" />
+
           <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-            <div className="h-40 rounded-2xl bg-slate-200" />
-            <div className="h-64 rounded-2xl bg-slate-200" />
+            <div className="h-40 rounded-2xl bg-muted" />
+            <div className="h-64 rounded-2xl bg-muted" />
           </div>
         </div>
       </main>
     )
   }
 
+  // Error State
   if (error || !studio) {
     return (
-      <main className="grid min-h-[70vh] place-items-center bg-[#faf9ff] px-4">
+      <main className="grid min-h-[70vh] place-items-center bg-background px-4">
         <div className="text-center">
-          <ImageIcon className="mx-auto size-12 text-slate-300" />
-          <h2 className="mt-4 text-xl font-bold text-slate-900">
+          <ImageIcon className="mx-auto size-12 text-muted-foreground" />
+
+          <h2 className="mt-4 text-xl font-bold text-foreground">
             Studio not found
           </h2>
-          <p className="mt-2 text-sm text-slate-500">
+
+          <p className="mt-2 text-sm text-muted-foreground">
             {error || "This studio may have been removed."}
           </p>
+
           <Button
-            className="mt-5 bg-violet-700"
+            className="mt-5 bg-brand text-white hover:bg-brand-strong"
             onClick={() => window.history.back()}
           >
             Go Back
@@ -251,37 +250,38 @@ const handleBookingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   const images = studio.images || []
 
   return (
-    <main className="min-h-screen bg-[#faf9ff]">
+    <main className="min-h-screen bg-background transition-colors duration-300">
       <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
 
-        <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+        {/* Breadcrumb */}
+        <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <span>Explore Studios</span>
           <span>/</span>
           <span>{studio.category}</span>
           <span>/</span>
-          <span className="font-medium text-violet-700">
+          <span className="font-medium text-brand">
             {studio.title}
           </span>
         </div>
 
         {/* Studio Heading */}
         <div className="mb-5">
-          <Badge className="mb-3 bg-violet-100 text-violet-700 hover:bg-violet-100">
+          <Badge className="mb-3 bg-brand-soft text-brand hover:bg-brand-soft">
             {studio.category}
           </Badge>
 
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {studio.title}
           </h1>
 
-          <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-slate-500">
+          <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1.5">
-              <MapPin className="size-4 text-violet-600" />
+              <MapPin className="size-4 text-brand" />
               {studio.location}
             </span>
 
             <span className="flex items-center gap-1.5">
-              <Users className="size-4 text-violet-600" />
+              <Users className="size-4 text-brand" />
               Up to {studio.capacity} people
             </span>
           </div>
@@ -291,7 +291,7 @@ const handleBookingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         <section className="mb-8">
           {images.length > 0 ? (
             <>
-              <div className="group relative aspect-[16/8] overflow-hidden rounded-2xl bg-slate-200 shadow-sm">
+              <div className="group relative aspect-[16/8] overflow-hidden rounded-2xl bg-muted shadow-sm">
                 <img
                   src={images[activeImage]}
                   alt={studio.title}
@@ -306,24 +306,28 @@ const handleBookingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   <>
                     <button
                       type="button"
+                      aria-label="Previous image"
                       onClick={() =>
                         setActiveImage((previous) =>
-                          previous === 0 ? images.length - 1 : previous - 1
+                          previous === 0
+                            ? images.length - 1
+                            : previous - 1
                         )
                       }
-                      className="absolute top-1/2 left-3 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-white/90 shadow transition hover:bg-white"
+                      className="absolute top-1/2 left-3 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-slate-900 shadow transition hover:bg-white"
                     >
                       <ChevronLeft className="size-5" />
                     </button>
 
                     <button
                       type="button"
+                      aria-label="Next image"
                       onClick={() =>
                         setActiveImage((previous) =>
                           (previous + 1) % images.length
                         )
                       }
-                      className="absolute top-1/2 right-3 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-white/90 shadow transition hover:bg-white"
+                      className="absolute top-1/2 right-3 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-slate-900 shadow transition hover:bg-white"
                     >
                       <ChevronRight className="size-5" />
                     </button>
@@ -339,7 +343,7 @@ const handleBookingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                     onClick={() => setActiveImage(index)}
                     className={`size-16 overflow-hidden rounded-lg border-2 transition sm:size-20 ${
                       activeImage === index
-                        ? "border-violet-600"
+                        ? "border-brand"
                         : "border-transparent opacity-75 hover:opacity-100"
                     }`}
                   >
@@ -353,8 +357,8 @@ const handleBookingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               </div>
             </>
           ) : (
-            <div className="flex aspect-[16/8] items-center justify-center rounded-2xl bg-slate-100">
-              <ImageIcon className="size-12 text-slate-300" />
+            <div className="flex aspect-[16/8] items-center justify-center rounded-2xl bg-muted">
+              <ImageIcon className="size-12 text-muted-foreground" />
             </div>
           )}
         </section>
@@ -364,57 +368,63 @@ const handleBookingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 
           <div className="space-y-6">
 
-            <Card className="rounded-2xl border-slate-100 shadow-sm">
+            {/* Studio Information */}
+            <Card className="rounded-2xl border-border bg-card shadow-sm">
               <CardContent className="grid grid-cols-2 gap-5 p-5 sm:grid-cols-3">
+
                 <div>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-muted-foreground">
                     Hourly Rate
                   </p>
-                  <p className="mt-1 text-lg font-bold text-violet-700">
+
+                  <p className="mt-1 text-lg font-bold text-brand">
                     ${studio.hourlyRate}
-                    <span className="text-xs font-normal text-slate-500">
+                    <span className="text-xs font-normal text-muted-foreground">
                       /hr
                     </span>
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-muted-foreground">
                     Security Deposit
                   </p>
-                  <p className="mt-1 text-lg font-bold text-slate-900">
+
+                  <p className="mt-1 text-lg font-bold text-card-foreground">
                     ${studio.securityDeposit}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-muted-foreground">
                     Max Capacity
                   </p>
-                  <p className="mt-1 text-lg font-bold text-slate-900">
+
+                  <p className="mt-1 text-lg font-bold text-card-foreground">
                     {studio.capacity} people
                   </p>
                 </div>
+
               </CardContent>
             </Card>
 
             {/* Overview */}
-            <Card className="rounded-2xl border-slate-100 shadow-sm">
+            <Card className="rounded-2xl border-border bg-card shadow-sm">
               <CardContent className="p-5">
-                <h2 className="text-base font-bold text-slate-900">
+                <h2 className="text-base font-bold text-card-foreground">
                   Workspace Overview
                 </h2>
 
-                <p className="mt-3 text-sm leading-7 text-slate-600">
+                <p className="mt-3 text-sm leading-7 text-muted-foreground">
                   {studio.description}
                 </p>
               </CardContent>
             </Card>
 
             {/* Amenities */}
-            <Card className="rounded-2xl border-slate-100 shadow-sm">
+            <Card className="rounded-2xl border-border bg-card shadow-sm">
               <CardContent className="p-5">
-                <h2 className="text-base font-bold text-slate-900">
+                <h2 className="text-base font-bold text-card-foreground">
                   Amenities & Equipment
                 </h2>
 
@@ -422,9 +432,9 @@ const handleBookingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   {studio.amenities?.map((amenity) => (
                     <div
                       key={amenity}
-                      className="flex items-center gap-3 text-sm text-slate-600"
+                      className="flex items-center gap-3 text-sm text-muted-foreground"
                     >
-                      <span className="grid size-8 place-items-center rounded-lg bg-violet-50 text-violet-700">
+                      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand">
                         <CheckCircle2 className="size-4" />
                       </span>
 
@@ -436,29 +446,31 @@ const handleBookingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
             </Card>
 
             {/* Location */}
-            <Card className="rounded-2xl border-slate-100 shadow-sm">
+            <Card className="rounded-2xl border-border bg-card shadow-sm">
               <CardContent className="p-5">
-                <h2 className="text-base font-bold text-slate-900">
+                <h2 className="text-base font-bold text-card-foreground">
                   Location
                 </h2>
 
-                <p className="mt-3 flex items-center gap-2 text-sm text-slate-600">
-                  <MapPin className="size-4 text-violet-600" />
+                <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                  <MapPin className="size-4 text-brand" />
                   {studio.location}
                 </p>
               </CardContent>
             </Card>
+
           </div>
 
+          {/* Booking Sidebar */}
           <aside className="lg:sticky lg:top-24">
-            <Card className="rounded-2xl border-slate-100 shadow-[0_8px_25px_rgba(30,20,70,0.12)]">
+            <Card className="rounded-2xl border-border bg-card shadow-[0_8px_25px_rgba(30,20,70,0.12)]">
               <CardContent className="p-5">
 
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center justify-between border-b border-border pb-4">
                   <div>
-                    <p className="text-2xl font-bold text-violet-700">
+                    <p className="text-2xl font-bold text-brand">
                       ${studio.hourlyRate}
-                      <span className="text-xs font-normal text-slate-500">
+                      <span className="text-xs font-normal text-muted-foreground">
                         {" "}/ hour
                       </span>
                     </p>
@@ -466,79 +478,93 @@ const handleBookingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 </div>
 
                 <div className="space-y-4 py-5">
+
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500">
+                    <span className="text-muted-foreground">
                       Security Deposit
                     </span>
-                    <span className="font-semibold text-slate-900">
+
+                    <span className="font-semibold text-card-foreground">
                       ${studio.securityDeposit}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500">
+                    <span className="text-muted-foreground">
                       Cancellation Policy
                     </span>
-                    <span className="font-medium text-emerald-600">
+
+                    <span className="font-medium text-emerald-600 dark:text-emerald-400">
                       Host approval required
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500">
+                    <span className="text-muted-foreground">
                       Availability
                     </span>
-                    <span className="font-medium text-slate-900">
+
+                    <span className="font-medium text-card-foreground">
                       Request a slot
                     </span>
                   </div>
+
                 </div>
 
                 <Button
                   onClick={() => setBookingOpen(true)}
-                  className="h-11 w-full rounded-xl bg-violet-700 text-sm font-semibold text-white hover:bg-violet-800"
+                  className="h-11 w-full rounded-xl bg-brand text-sm font-semibold text-white hover:bg-brand-strong"
                 >
                   <CalendarDays className="mr-2 size-4" />
                   Book Workspace Now
                 </Button>
 
-                <p className="mt-4 text-center text-[11px] leading-5 text-slate-500">
+                <p className="mt-4 text-center text-[11px] leading-5 text-muted-foreground">
                   You won't be charged immediately. Your reservation
                   will enter Pending status for host approval.
                 </p>
 
-                <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-slate-400">
+                <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-muted-foreground">
                   <ShieldCheck className="size-4" />
                   Secure booking experience
                 </div>
+
               </CardContent>
             </Card>
           </aside>
+
         </div>
       </div>
 
       {/* Booking Dialog */}
       <Dialog open={bookingOpen} onOpenChange={setBookingOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-[480px]">
+        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl border-border bg-card text-card-foreground sm:max-w-[480px]">
+
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
+            <DialogTitle className="text-xl font-bold text-card-foreground">
               Book Your Workspace
             </DialogTitle>
           </DialogHeader>
 
-          <div className="rounded-xl bg-violet-50 p-3">
-            <p className="font-semibold text-slate-900">
+          {/* Selected Studio */}
+          <div className="rounded-xl bg-brand-soft p-3">
+            <p className="font-semibold text-foreground">
               {studio.title}
             </p>
-            <p className="mt-1 text-xs text-slate-500">
+
+            <p className="mt-1 text-xs text-muted-foreground">
               {studio.location}
             </p>
           </div>
 
           <form onSubmit={handleBookingSubmit} className="space-y-4">
 
+            {/* Booking Date */}
             <div className="space-y-2">
-              <Label htmlFor="booking-date">Booking Date</Label>
+              <Label htmlFor="booking-date">
+                Booking Date
+              </Label>
+
               <Input
                 id="booking-date"
                 type="date"
@@ -547,13 +573,19 @@ const handleBookingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 onChange={(e) =>
                   setBooking({ ...booking, date: e.target.value })
                 }
+                className="border-border bg-background text-foreground"
                 required
               />
             </div>
 
+            {/* Booking Time */}
             <div className="grid grid-cols-2 gap-3">
+
               <div className="space-y-2">
-                <Label htmlFor="start-time">Start Time</Label>
+                <Label htmlFor="start-time">
+                  Start Time
+                </Label>
+
                 <Input
                   id="start-time"
                   type="time"
@@ -561,12 +593,16 @@ const handleBookingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   onChange={(e) =>
                     setBooking({ ...booking, startTime: e.target.value })
                   }
+                  className="border-border bg-background text-foreground"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="end-time">End Time</Label>
+                <Label htmlFor="end-time">
+                  End Time
+                </Label>
+
                 <Input
                   id="end-time"
                   type="time"
@@ -574,15 +610,19 @@ const handleBookingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   onChange={(e) =>
                     setBooking({ ...booking, endTime: e.target.value })
                   }
+                  className="border-border bg-background text-foreground"
                   required
                 />
               </div>
+
             </div>
 
+            {/* Message */}
             <div className="space-y-2">
               <Label htmlFor="booking-message">
                 Message to Host (Optional)
               </Label>
+
               <Textarea
                 id="booking-message"
                 placeholder="Tell the host about your project..."
@@ -591,57 +631,63 @@ const handleBookingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   setBooking({ ...booking, message: e.target.value })
                 }
                 rows={3}
+                className="border-border bg-background text-foreground placeholder:text-muted-foreground"
               />
             </div>
 
             {/* Price Summary */}
-            <div className="rounded-xl border bg-slate-50 p-4">
+            <div className="rounded-xl border border-border bg-muted p-4">
+
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">
+                <span className="text-muted-foreground">
                   ${studio.hourlyRate} × {bookingHours} hours
                 </span>
-                <span className="font-semibold">
+
+                <span className="font-semibold text-foreground">
                   ${totalPrice.toFixed(2)}
                 </span>
               </div>
 
               <div className="mt-3 flex justify-between text-sm">
-                <span className="text-slate-500">
+                <span className="text-muted-foreground">
                   Security Deposit
                 </span>
-                <span className="font-semibold">
+
+                <span className="font-semibold text-foreground">
                   ${studio.securityDeposit}
                 </span>
               </div>
 
-              <div className="mt-3 flex justify-between border-t pt-3">
-                <span className="font-semibold text-slate-900">
+              <div className="mt-3 flex justify-between border-t border-border pt-3">
+                <span className="font-semibold text-foreground">
                   Estimated Total
                 </span>
-                <span className="text-lg font-bold text-violet-700">
+
+                <span className="text-lg font-bold text-brand">
                   ${(totalPrice + studio.securityDeposit).toFixed(2)}
                 </span>
               </div>
+
             </div>
 
-            
-<Button
-  type="submit"
-  disabled={isBooking || bookingHours <= 0}
-  className="h-11 w-full rounded-xl bg-violet-700 hover:bg-violet-800"
->
-  {isBooking ? (
-    <>
-      <Loader2 className="mr-2 size-4 animate-spin" />
-      Submitting...
-    </>
-  ) : (
-    <>
-      <CalendarDays className="mr-2 size-4" />
-      Continue Booking
-    </>
-  )}
-</Button>
+            {/* Submit Booking */}
+            <Button
+              type="submit"
+              disabled={isBooking || bookingHours <= 0}
+              className="h-11 w-full rounded-xl bg-brand text-white hover:bg-brand-strong"
+            >
+              {isBooking ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <CalendarDays className="mr-2 size-4" />
+                  Continue Booking
+                </>
+              )}
+            </Button>
 
           </form>
         </DialogContent>

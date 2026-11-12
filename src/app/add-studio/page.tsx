@@ -107,12 +107,12 @@ function StudioCardHeader({
             <CardTitle
               role="heading"
               aria-level={2}
-              className="text-base font-semibold text-ink"
+              className="text-base font-semibold text-card-foreground"
             >
               {title}
             </CardTitle>
 
-            <CardDescription className="mt-1 text-[13px] leading-5 text-slate-500">
+            <CardDescription className="mt-1 text-[13px] leading-5 text-muted-foreground">
               {description}
             </CardDescription>
           </div>
@@ -125,7 +125,8 @@ function StudioCardHeader({
 }
 
 export default function AddStudioPage() {
-const { data: session, isPending } = authClient.useSession()
+  const { data: session, isPending } = authClient.useSession()
+
   const [form, setForm] = useState<StudioForm>(initialForm)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -162,7 +163,6 @@ const { data: session, isPending } = authClient.useSession()
     event: FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault()
-
 
     const ownerEmail = session?.user?.email
 
@@ -212,15 +212,16 @@ const { data: session, isPending } = authClient.useSession()
     try {
       setIsSubmitting(true)
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
-      const token = await getTokenFromClient();
+      const token = await getTokenFromClient()
 
       const response = await fetch(`${apiUrl}/add-studio`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-           Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
 
         body: JSON.stringify({
@@ -256,14 +257,14 @@ const { data: session, isPending } = authClient.useSession()
   }
 
   return (
-    <main className="min-h-screen flex-1 bg-surface">
+    <main className="min-h-screen flex-1 bg-surface transition-colors duration-300">
       <div className="mx-auto w-full max-w-[1380px] px-6 pt-7 pb-16 sm:px-8 lg:pb-20">
 
         {/* Page Heading */}
         <div className="flex flex-wrap items-center gap-3">
           <h1
             id="page-title"
-            className="text-[30px] font-bold tracking-[-0.04em] text-ink sm:text-[36px]"
+            className="text-[30px] font-bold tracking-[-0.04em] text-foreground sm:text-[36px]"
           >
             List Your Studio
           </h1>
@@ -276,7 +277,7 @@ const { data: session, isPending } = authClient.useSession()
           </Badge>
         </div>
 
-        <p className="mt-2 max-w-[560px] text-sm leading-6 text-slate-500">
+        <p className="mt-2 max-w-[560px] text-sm leading-6 text-muted-foreground">
           Publish your creative space to thousands of verified photographers,
           podcasters, and filmmakers in minutes.
         </p>
@@ -288,7 +289,8 @@ const { data: session, isPending } = authClient.useSession()
           className="mx-auto mt-8 w-full max-w-[880px] space-y-6"
         >
 
-          <Card className="gap-5 rounded-2xl py-7 shadow-[0_1px_2px_rgba(17,18,43,0.04)] ring-slate-200/80">
+          {/* Studio Essentials */}
+          <Card className="gap-5 rounded-2xl border-border bg-card py-7 text-card-foreground shadow-sm">
             <StudioCardHeader
               icon={ClipboardList}
               title="Studio Essentials"
@@ -309,16 +311,17 @@ const { data: session, isPending } = authClient.useSession()
                   onChange={(e) => update("title", e.target.value)}
                   maxLength={70}
                   required
-                  className="h-10 bg-white text-sm"
+                  className="h-10 border-border bg-background text-sm"
                 />
 
-                <p className="text-right text-[11px] text-slate-400">
+                <p className="text-right text-[11px] text-muted-foreground">
                   {form.title.length}/70
                 </p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
 
+                {/* Category */}
                 <div className="space-y-2">
                   <Label>
                     Space Category <span className="text-brand">*</span>
@@ -330,7 +333,7 @@ const { data: session, isPending } = authClient.useSession()
                       if (value !== null) update("category", value)
                     }}
                   >
-                    <SelectTrigger className="h-10 w-full bg-white text-sm">
+                    <SelectTrigger className="h-10 w-full border-border bg-background text-sm">
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
 
@@ -366,7 +369,7 @@ const { data: session, isPending } = authClient.useSession()
                   </Label>
 
                   <div className="relative">
-                    <MapPin className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+                    <MapPin className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
 
                     <Input
                       id="studio-address"
@@ -374,7 +377,7 @@ const { data: session, isPending } = authClient.useSession()
                       value={form.location}
                       onChange={(e) => update("location", e.target.value)}
                       required
-                      className="h-10 bg-white pl-9 text-sm"
+                      className="h-10 border-border bg-background pl-9 text-sm"
                     />
                   </div>
                 </div>
@@ -383,7 +386,7 @@ const { data: session, isPending } = authClient.useSession()
           </Card>
 
           {/* Pricing & Capacity */}
-          <Card className="gap-5 rounded-2xl py-7 shadow-[0_1px_2px_rgba(17,18,43,0.04)] ring-slate-200/80">
+          <Card className="gap-5 rounded-2xl border-border bg-card py-7 text-card-foreground shadow-sm">
             <StudioCardHeader
               icon={Banknote}
               title="Pricing & Capacity"
@@ -400,7 +403,7 @@ const { data: session, isPending } = authClient.useSession()
                   </Label>
 
                   <div className="relative">
-                    <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-slate-500">
+                    <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
                       $
                     </span>
 
@@ -412,7 +415,7 @@ const { data: session, isPending } = authClient.useSession()
                       value={form.hourlyRate}
                       onChange={(e) => update("hourlyRate", e.target.value)}
                       required
-                      className="h-10 bg-white pl-7 text-sm"
+                      className="h-10 border-border bg-background pl-7 text-sm"
                     />
                   </div>
                 </div>
@@ -424,7 +427,7 @@ const { data: session, isPending } = authClient.useSession()
                   </Label>
 
                   <div className="relative">
-                    <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-slate-500">
+                    <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
                       $
                     </span>
 
@@ -437,7 +440,7 @@ const { data: session, isPending } = authClient.useSession()
                       onChange={(e) =>
                         update("securityDeposit", e.target.value)
                       }
-                      className="h-10 bg-white pl-7 text-sm"
+                      className="h-10 border-border bg-background pl-7 text-sm"
                     />
                   </div>
                 </div>
@@ -456,16 +459,16 @@ const { data: session, isPending } = authClient.useSession()
                     value={form.capacity}
                     onChange={(e) => update("capacity", e.target.value)}
                     required
-                    className="h-10 bg-white text-sm"
+                    className="h-10 border-border bg-background text-sm"
                   />
                 </div>
               </div>
 
               {/* Estimated Payout */}
-              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4">
-                <p className="text-[11px] text-slate-500">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
+                <p className="text-[11px] text-muted-foreground">
                   Estimated Hour Payout{" "}
-                  <span className="text-slate-400">
+                  <span className="text-muted-foreground">
                     (after 15% platform fee)
                   </span>
                 </p>
@@ -478,7 +481,7 @@ const { data: session, isPending } = authClient.useSession()
           </Card>
 
           {/* Studio Photos */}
-          <Card className="gap-5 rounded-2xl py-7 shadow-[0_1px_2px_rgba(17,18,43,0.04)] ring-slate-200/80">
+          <Card className="gap-5 rounded-2xl border-border bg-card py-7 text-card-foreground shadow-sm">
             <StudioCardHeader
               icon={ImagePlus}
               title="Studio Photos"
@@ -502,7 +505,7 @@ const { data: session, isPending } = authClient.useSession()
           </Card>
 
           {/* Amenities */}
-          <Card className="gap-5 rounded-2xl py-7 shadow-[0_1px_2px_rgba(17,18,43,0.04)] ring-slate-200/80">
+          <Card className="gap-5 rounded-2xl border-border bg-card py-7 text-card-foreground shadow-sm">
             <StudioCardHeader
               icon={SlidersHorizontal}
               title="Amenities & Gear"
@@ -524,12 +527,12 @@ const { data: session, isPending } = authClient.useSession()
                       onCheckedChange={(checked) =>
                         handleAmenityChange(id, checked === true)
                       }
-                      className="border-slate-300 data-checked:border-brand data-checked:bg-brand data-checked:text-white"
+                      className="border-border data-checked:border-brand data-checked:bg-brand data-checked:text-white"
                     />
 
                     <Label
                       htmlFor={id}
-                      className="cursor-pointer text-xs font-normal text-slate-600"
+                      className="cursor-pointer text-xs font-normal text-foreground"
                     >
                       {label}
                     </Label>
@@ -540,7 +543,7 @@ const { data: session, isPending } = authClient.useSession()
           </Card>
 
           {/* Description */}
-          <Card className="gap-5 rounded-2xl py-7 shadow-[0_1px_2px_rgba(17,18,43,0.04)] ring-slate-200/80">
+          <Card className="gap-5 rounded-2xl border-border bg-card py-7 text-card-foreground shadow-sm">
             <StudioCardHeader
               icon={FileText}
               title="Studio Description"
@@ -555,10 +558,10 @@ const { data: session, isPending } = authClient.useSession()
                 onChange={(e) => update("description", e.target.value)}
                 required
                 maxLength={2000}
-                className="min-h-[130px] resize-none bg-white text-sm leading-6"
+                className="min-h-[130px] resize-none border-border bg-background text-sm leading-6"
               />
 
-              <p className="mt-2 text-right text-[11px] text-slate-400">
+              <p className="mt-2 text-right text-[11px] text-muted-foreground">
                 {form.description.length}/2000
               </p>
             </CardContent>
@@ -573,7 +576,7 @@ const { data: session, isPending } = authClient.useSession()
                   setForm(initialForm)
                   toast.success("Form cleared.")
                 }}
-                className="text-sm font-medium text-ink transition-colors hover:text-brand"
+                className="text-sm font-medium text-foreground transition-colors hover:text-brand"
               >
                 Clear Form
               </button>
@@ -581,7 +584,7 @@ const { data: session, isPending } = authClient.useSession()
               <button
                 type="button"
                 onClick={() => window.history.back()}
-                className="text-sm text-slate-500 transition-colors hover:text-ink"
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 Cancel
               </button>
@@ -589,7 +592,7 @@ const { data: session, isPending } = authClient.useSession()
 
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isPending}
               className="h-11 w-full rounded-full bg-brand px-6 text-sm font-semibold text-white shadow-[0_12px_24px_-14px_rgba(98,56,245,0.9)] hover:bg-brand-strong sm:w-auto"
             >
               <CheckCircle2 className="size-4" />

@@ -63,18 +63,19 @@ export function ImageUrlUpload({
 
   return (
     <div className="space-y-5">
+
       {/* URL Input */}
       <div className="space-y-2">
         <label
           htmlFor="studio-image-url"
-          className="text-xs font-medium text-slate-600"
+          className="text-xs font-medium text-foreground"
         >
           Image URL
         </label>
 
         <div className="flex flex-col gap-2 sm:flex-row">
           <div className="relative flex-1">
-            <Link2 className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+            <Link2 className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 
             <Input
               id="studio-image-url"
@@ -91,7 +92,7 @@ export function ImageUrlUpload({
                   handleAddImage()
                 }
               }}
-              className="h-11 bg-white pl-9 text-sm"
+              className="h-11 border-border bg-background pl-9 text-sm text-foreground placeholder:text-muted-foreground"
             />
           </div>
 
@@ -110,19 +111,20 @@ export function ImageUrlUpload({
           <p className="text-xs text-red-500">{error}</p>
         )}
 
-        <p className="text-[11px] text-slate-400">
+        <p className="text-[11px] text-muted-foreground">
           Paste an image URL. Supports JPG, PNG and WEBP.
           Maximum 10 images.
         </p>
       </div>
 
       {/* Preview Header */}
-      <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+      <div className="flex items-center justify-between border-t border-border pt-4">
         <div>
-          <p className="text-sm font-semibold text-slate-700">
+          <p className="text-sm font-semibold text-foreground">
             Image Preview
           </p>
-          <p className="text-xs text-slate-500">
+
+          <p className="text-xs text-muted-foreground">
             Your studio images will appear here.
           </p>
         </div>
@@ -138,7 +140,7 @@ export function ImageUrlUpload({
           {value.map((url, index) => (
             <div
               key={url}
-              className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-slate-200 bg-slate-100"
+              className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-border bg-muted"
             >
               {!failedImages.includes(url) ? (
                 <img
@@ -154,7 +156,8 @@ export function ImageUrlUpload({
                 />
               ) : (
                 <div className="flex size-full flex-col items-center justify-center gap-2 p-3 text-center">
-                  <ImagePlus className="size-7 text-slate-400" />
+                  <ImagePlus className="size-7 text-muted-foreground" />
+
                   <p className="text-xs text-red-500">
                     Unable to load image
                   </p>
@@ -184,9 +187,10 @@ export function ImageUrlUpload({
               onClick={() =>
                 document.getElementById("studio-image-url")?.focus()
               }
-              className="flex aspect-[4/3] flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-400 transition hover:border-brand hover:text-brand"
+              className="flex aspect-[4/3] flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted text-muted-foreground transition hover:border-brand hover:text-brand"
             >
               <Plus className="size-6" />
+
               <span className="mt-2 text-xs font-medium">
                 Add More
               </span>
@@ -194,14 +198,14 @@ export function ImageUrlUpload({
           )}
         </div>
       ) : (
-        <div className="flex min-h-[180px] flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center">
-          <ImagePlus className="size-9 text-slate-400" />
+        <div className="flex min-h-[180px] flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted px-4 py-8 text-center">
+          <ImagePlus className="size-9 text-muted-foreground" />
 
-          <p className="mt-3 text-sm font-medium text-slate-600">
+          <p className="mt-3 text-sm font-medium text-foreground">
             No images added yet
           </p>
 
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-muted-foreground">
             Paste an image URL above to see the preview.
           </p>
         </div>
