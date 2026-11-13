@@ -158,50 +158,43 @@ export default function MyListingsPage() {
   }, [userEmail, isSessionLoading])
 
   // Delete studio
-  const handleDelete = async () => {
-    if (!deleteId || !userEmail) return
+const handleDelete = async () => {
+  if (!deleteId || !userEmail) return
 
-    try {
-      setIsDeleting(true)
+  setIsDeleting(true)
 
-      const token = await getTokenFromClient()
+  const token = await getTokenFromClient()
 
-      if (!token) {
-        throw new Error("Please login again.")
-      }
-
-      const response = await fetch(
-        `${API_URL}/my-listings/${deleteId}?email=${encodeURIComponent(userEmail)}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to delete studio")
-      }
-
-      setStudios((previous) =>
-        previous.filter((studio) => studio._id !== deleteId)
-      )
-
-      toast.success(result.message || "Studio deleted successfully!")
-      setDeleteId(null)
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Something went wrong"
-      )
-    } finally {
-      setIsDeleting(false)
-    }
+  if (!token) {
+    setIsDeleting(false)
+    return
   }
+
+  const response = await fetch( `${API_URL}/my-listings/${deleteId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+
+  const result = await response.json()
+
+  if (!response.ok) {
+    setIsDeleting(false)
+    return
+  }
+
+  setStudios((previous) =>
+    previous.filter((studio) => studio._id !== deleteId)
+  )
+
+  toast.success(result.message || "Studio deleted successfully!")
+
+  setDeleteId(null)
+  setIsDeleting(false)
+}
 
   // View bookings
   const handleViewBookings = async (studio: Studio) => {

@@ -51,6 +51,10 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 
+
+
+
+
 type Booking = {
   _id: string
   studioId: string
@@ -107,44 +111,45 @@ export default function MyBookingsPage() {
   const [isDeleting, setIsDeleting] = useState(false)
 
   // Fetch Bookings
-  const fetchBookings = useCallback(async () => {
-    if (!userEmail) {
-      setBookings([])
-      setIsLoading(false)
-      return
+const fetchBookings = useCallback(async () => {
+  if (!userEmail) {
+    setBookings([])
+    setIsLoading(false)
+    return
+  }
+
+  try {
+    setIsLoading(true)
+    setError("")
+
+    const token = await getTokenFromClient()
+
+    if (!token) {
+      throw new Error("Authentication token not found")
     }
 
-    try {
-      setIsLoading(true)
-      setError("")
+    const response = await fetch(`${API_URL}/my-bookings`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
 
-      const token = await getTokenFromClient()
-
-      const response = await fetch(
-        `${API_URL}/my-bookings?email=${encodeURIComponent(userEmail)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-
-      if (!response.ok) {
-        throw new Error("Failed to load bookings")
-      }
-
-      const result = await response.json()
-      setBookings(result.bookings || [])
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Something went wrong"
-      )
-    } finally {
-      setIsLoading(false)
+    if (!response.ok) {
+      throw new Error("Failed to load bookings")
     }
-  }, [userEmail])
+
+    const result = await response.json()
+    setBookings(result.bookings || [])
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : "Something went wrong"
+    )
+  } finally {
+    setIsLoading(false)
+  }
+}, [userEmail])
 
   useEffect(() => {
     if (!isSessionLoading) {

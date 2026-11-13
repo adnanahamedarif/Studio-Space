@@ -80,43 +80,30 @@ export default function StudioDetailsPage() {
   const { data: session } = authClient.useSession()
 
   // Fetch Studio
-  useEffect(() => {
-    if (!id) return
+const fetchStudio = async () => {
+  if (!id) return
 
-    const fetchStudio = async () => {
-      try {
-        setIsLoading(true)
-        setError("")
+  setIsLoading(true)
+  setError("")
 
-        const response = await fetch(`${API_URL}/studios/${id}`)
-        const result = await response.json()
+  const response = await fetch(`${API_URL}/studios/${id}`)
+  const result = await response.json()
 
-        if (!response.ok) {
-          throw new Error(result.message || "Studio not found")
-        }
+  const studioData = result.studio || result
 
-        const studioData = result.studio || result
+  setStudio(studioData)
+  setActiveImage(0)
 
-        setStudio(studioData)
-        setActiveImage(0)
-      } catch (error) {
-        console.error("Fetch studio error:", error)
+  setIsLoading(false)
+}
+useEffect(() => {
+  fetchStudio()
+}, [id])
 
-        setError(
-          error instanceof Error
-            ? error.message
-            : "Something went wrong"
-        )
-      } finally {
-        setIsLoading(false)
-      }
-    }
 
-    fetchStudio()
-  }, [id])
 
   // Calculate Booking Hours
-  const getBookingHours = () => {
+  function getBookingHours() {
     if (!booking.startTime || !booking.endTime) return 0
 
     const start = booking.startTime.split(":").map(Number)

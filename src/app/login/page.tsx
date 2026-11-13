@@ -51,7 +51,6 @@ export default function LoginPage() {
         return
       }
 
-      // Get JWT after successful login
       const { data, error: tokenError } = await authClient.token()
 
       console.log("JWT:", data?.token)

@@ -80,38 +80,23 @@ export default function ExploreStudiosPage() {
   const itemsPerPage = 9
 
   // Fetch Studios from MongoDB
-  useEffect(() => {
-    const fetchStudios = async () => {
-      try {
-        setIsLoading(true)
-        setError("")
+const fetchStudios = async () => {
+  setIsLoading(true)
+  setError("")
 
-        const response = await fetch(`${API_URL}/studios`)
+  const response = await fetch(`${API_URL}/studios`)
+  const result = await response.json()
 
-        if (!response.ok) {
-          throw new Error("Failed to load studios.")
-        }
+  setStudios(
+    Array.isArray(result) ? result : result.studios || []
+  )
 
-        const result = await response.json()
+  setIsLoading(false)
+}
 
-        console.log("Fetched Studios:", result)
-
-        setStudios(
-          Array.isArray(result) ? result : result.studios || []
-        )
-      } catch (error) {
-        setError(
-          error instanceof Error
-            ? error.message
-            : "Something went wrong."
-        )
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchStudios()
-  }, [])
+useEffect(() => {
+  fetchStudios()
+}, [])
 
   // Filter and Sort Studios
   const filteredStudios = useMemo(() => {
