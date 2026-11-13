@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# StudioSpace 🎬
 
-## Getting Started
+**StudioSpace** is a creative studio booking platform where users can explore, discover, and book creative spaces for photography, filmmaking, podcasting, music production, and other creative projects.
 
-First, run the development server:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🌟 Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Explore Studios:** Browse available creative studios.
+- **Search & Filter:** Search studios by name, location, category, price, and amenities.
+- **Studio Details:** View studio images, descriptions, facilities, pricing, and capacity.
+- **User Authentication:** Register and log in using email or Google.
+- **Studio Booking:** Submit booking requests with preferred dates and times.
+- **My Bookings:** View and manage personal bookings.
+- **Host Dashboard:** Add, edit, and manage studio listings.
+- **Booking Management:** Hosts can approve or reject booking requests.
+- **Responsive Design:** Works on desktop, tablet, and mobile devices.
+- **Dark Mode:** Supports light and dark themes.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Technologies Used
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Frontend
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- Lucide React
 
-## Learn More
+### Backend
+- Node.js
+- Express.js
+- MongoDB
 
-To learn more about Next.js, take a look at the following resources:
+### Authentication
+- Better Auth
+- JWT
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📸 Project Screenshots
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+![StudioSpace Dark Mode Preview](./public/images/studiospace-screenshots-collage.png)
+
+![StudioSpace Dark Mode Preview](./public/images/studiospace-dark-mode-preview.png)
+
+
+## 🔗 Project Links
+
+- **Live Website:** (https://studio-space-beige.vercel.app/)
+- **Frontend Repository:** (https://github.com/adnanahamedarif/Studio-Space)
+- **Backend Repository:**(https://github.com/adnanahamedarif/Studio-Space-server)
+
