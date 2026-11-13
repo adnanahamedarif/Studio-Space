@@ -27,7 +27,7 @@ export function HostCta() {
           {/* CTA Button */}
           <Button
             nativeButton={false}
-            render={<a href="#list-your-space" />}
+            render={<a href="/add-studio" />}
             className="h-11 shrink-0 self-start rounded-full bg-white px-6 text-sm font-semibold text-[#11122b] transition-colors hover:bg-white/90 sm:self-auto"
           >
             List Your Space
